@@ -14,7 +14,86 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      jobs: {
+        Row: {
+          column_mapping: Json
+          created_at: string
+          csv_filename: string
+          error_count: number
+          error_details: Json
+          filename_variable: string | null
+          id: string
+          status: string
+          success_count: number
+          template_id: string
+          total_rows: number
+          user_id: string
+        }
+        Insert: {
+          column_mapping?: Json
+          created_at?: string
+          csv_filename: string
+          error_count?: number
+          error_details?: Json
+          filename_variable?: string | null
+          id?: string
+          status?: string
+          success_count?: number
+          template_id: string
+          total_rows?: number
+          user_id?: string
+        }
+        Update: {
+          column_mapping?: Json
+          created_at?: string
+          csv_filename?: string
+          error_count?: number
+          error_details?: Json
+          filename_variable?: string | null
+          id?: string
+          status?: string
+          success_count?: number
+          template_id?: string
+          total_rows?: number
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "jobs_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "templates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      templates: {
+        Row: {
+          created_at: string
+          id: string
+          name: string
+          storage_path: string
+          user_id: string
+          variables: Json
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          name: string
+          storage_path: string
+          user_id?: string
+          variables?: Json
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string
+          storage_path?: string
+          user_id?: string
+          variables?: Json
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
