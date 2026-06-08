@@ -2,9 +2,11 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
+  AlertCircle,
   ArrowLeft,
   ArrowRight,
   Check,
+  CheckCircle2,
   Download,
   FileSpreadsheet,
   FileText,
@@ -20,6 +22,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import { Label } from "@/components/ui/label";
+import { Progress } from "@/components/ui/progress";
 import {
   Select,
   SelectContent,
@@ -42,6 +45,7 @@ import {
 export const Route = createFileRoute("/_authenticated/generaciones")({
   component: GeneracionesPage,
 });
+
 
 type TemplateRow = {
   id: string;
@@ -158,12 +162,14 @@ function GeneracionesPage() {
         <StepGenerate
           template={template}
           sheet={sheet}
+          csvFilename={fileName}
           mapping={mapping}
           nameColumn={nameColumn}
           canGenerate={canGenerate}
           onDone={reset}
         />
       )}
+
 
       <div className="flex items-center justify-between gap-3 border-t pt-4">
         <Button
@@ -602,6 +608,7 @@ function StepName({
 function StepGenerate({
   template,
   sheet,
+  csvFilename,
   mapping,
   nameColumn,
   canGenerate,
@@ -609,6 +616,7 @@ function StepGenerate({
 }: {
   template: TemplateRow;
   sheet: ParsedSheet;
+  csvFilename: string;
   mapping: Record<string, string>;
   nameColumn: string;
   canGenerate: boolean;
@@ -621,6 +629,11 @@ function StepGenerate({
   );
   const [templateBuffer, setTemplateBuffer] = useState<ArrayBuffer | null>(null);
   const [previewBlob, setPreviewBlob] = useState<Blob | null>(null);
+  const [result, setResult] = useState<{
+    total: number;
+    success: number;
+    errors: Array<{ row: number; reason: string }>;
+  } | null>(null);
 
   // Build data for first row
   const firstRowData = useMemo<Record<string, string>>(() => {
@@ -660,7 +673,7 @@ function StepGenerate({
 
   // Build preview blob whenever data or template buffer changes
   useEffect(() => {
-    if (!templateBuffer || !canGenerate) return;
+    if (!templateBuffer || !canGenerate || result) return;
     let cancelled = false;
     (async () => {
       try {
@@ -678,11 +691,11 @@ function StepGenerate({
     return () => {
       cancelled = true;
     };
-  }, [templateBuffer, firstRowData, canGenerate]);
+  }, [templateBuffer, firstRowData, canGenerate, result]);
 
   // Render preview into the DOM
   useEffect(() => {
-    if (!previewBlob || !previewRef.current) return;
+    if (!previewBlob || !previewRef.current || result) return;
     let cancelled = false;
     (async () => {
       try {
@@ -701,12 +714,16 @@ function StepGenerate({
     return () => {
       cancelled = true;
     };
-  }, [previewBlob]);
+  }, [previewBlob, result]);
 
   async function handleGenerate() {
     if (!templateBuffer || !canGenerate) return;
     setBusy(true);
     setProgress({ done: 0, total: sheet.rows.length });
+
+    const errors: Array<{ row: number; reason: string }> = [];
+    let successCount = 0;
+
     try {
       const [{ default: JSZip }, { saveAs }] = await Promise.all([
         import("jszip"),
@@ -717,34 +734,171 @@ function StepGenerate({
 
       for (let i = 0; i < sheet.rows.length; i++) {
         const row = sheet.rows[i];
+        const rowNumber = i + 2; // header is row 1, first data row = 2
+
+        // Validate: every mapped variable must have a non-empty value
+        const missing: string[] = [];
         const data: Record<string, string> = {};
         for (const v of template.variables) {
           const col = mapping[v.name];
-          data[v.name] = formatValue(col ? row[col] ?? "" : "", v.type);
+          const raw = col ? (row[col] ?? "").trim() : "";
+          if (!raw) {
+            missing.push(v.label);
+          }
+          data[v.name] = formatValue(raw, v.type);
         }
-        const base = `contrato_${sanitizeFilename(row[nameColumn] ?? "")}`;
-        const count = used.get(base) ?? 0;
-        used.set(base, count + 1);
-        const name = count === 0 ? `${base}.docx` : `${base}_${count + 1}.docx`;
-        const bytes = await renderDocx(templateBuffer, data);
-        zip.file(name, bytes);
+
+        if (missing.length > 0) {
+          errors.push({
+            row: rowNumber,
+            reason: `Falta el valor de ${missing.map((m) => `'${m}'`).join(", ")}`,
+          });
+          setProgress({ done: i + 1, total: sheet.rows.length });
+          continue;
+        }
+
+        // Validate name column has a value too
+        const nameRaw = (row[nameColumn] ?? "").trim();
+        if (!nameRaw) {
+          errors.push({
+            row: rowNumber,
+            reason: `Falta el valor de la columna de nombre ('${nameColumn}')`,
+          });
+          setProgress({ done: i + 1, total: sheet.rows.length });
+          continue;
+        }
+
+        try {
+          const base = `contrato_${sanitizeFilename(nameRaw)}`;
+          const count = used.get(base) ?? 0;
+          used.set(base, count + 1);
+          const name = count === 0 ? `${base}.docx` : `${base}_${count + 1}.docx`;
+          const bytes = await renderDocx(templateBuffer, data);
+          zip.file(name, bytes);
+          successCount++;
+        } catch (err) {
+          const msg = err instanceof Error ? err.message : "Error al renderizar";
+          errors.push({ row: rowNumber, reason: msg });
+        }
+
         setProgress({ done: i + 1, total: sheet.rows.length });
+        // Yield so the UI can repaint between iterations
+        if (i % 5 === 0) await new Promise((r) => setTimeout(r, 0));
       }
 
-      const blob = await zip.generateAsync({ type: "blob" });
-      const zipName = `${sanitizeFilename(template.name)}_${sheet.rows.length}_contratos.zip`;
-      saveAs(blob, zipName);
-      toast.success(`${sheet.rows.length} contratos generados`);
-      onDone();
+      if (successCount > 0) {
+        const blob = await zip.generateAsync({ type: "blob" });
+        const zipName = `${sanitizeFilename(template.name)}_${successCount}_contratos.zip`;
+        saveAs(blob, zipName);
+      }
+
+      const status = errors.length === 0 ? "completado" : "completado_con_errores";
+
+      // Save job metadata (best-effort)
+      try {
+        const { error: insertError } = await supabase.from("jobs").insert({
+          template_id: template.id,
+          csv_filename: csvFilename,
+          column_mapping: mapping,
+          filename_variable: nameColumn,
+          total_rows: sheet.rows.length,
+          success_count: successCount,
+          error_count: errors.length,
+          error_details: errors,
+          status,
+        });
+        if (insertError) console.error("Error saving job:", insertError);
+      } catch (err) {
+        console.error("Error saving job:", err);
+      }
+
+      setResult({ total: sheet.rows.length, success: successCount, errors });
+
+      if (errors.length === 0) {
+        toast.success(`${successCount} contratos generados`);
+      } else if (successCount > 0) {
+        toast.warning(
+          `${successCount} generados, ${errors.length} con errores`,
+        );
+      } else {
+        toast.error("Ningún contrato pudo generarse");
+      }
     } catch (err) {
       console.error(err);
       const msg = err instanceof Error ? err.message : "Error al generar el ZIP";
       toast.error(msg);
     } finally {
       setBusy(false);
-      setProgress(null);
     }
   }
+
+  // === Summary view ===
+  if (result) {
+    const allOk = result.errors.length === 0;
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base flex items-center gap-2">
+            {allOk ? (
+              <CheckCircle2 className="size-5 text-primary" />
+            ) : (
+              <AlertCircle className="size-5 text-amber-600" />
+            )}
+            <span>
+              {allOk ? "Generación completada" : "Generación con errores"}
+            </span>
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="grid grid-cols-3 gap-3">
+            <SummaryStat label="Total" value={result.total} />
+            <SummaryStat
+              label="Generados"
+              value={result.success}
+              tone="success"
+            />
+            <SummaryStat
+              label="Con error"
+              value={result.errors.length}
+              tone={result.errors.length > 0 ? "error" : undefined}
+            />
+          </div>
+
+          {result.errors.length > 0 && (
+            <div className="rounded-lg border bg-muted/30">
+              <div className="px-4 py-2.5 border-b text-sm font-medium">
+                Filas con error
+              </div>
+              <div className="max-h-64 overflow-auto divide-y">
+                {result.errors.map((e, i) => (
+                  <div
+                    key={i}
+                    className="px-4 py-2.5 text-sm flex items-start gap-3"
+                  >
+                    <Badge variant="outline" className="font-mono shrink-0">
+                      Fila {e.row}
+                    </Badge>
+                    <span className="text-muted-foreground">{e.reason}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          <div className="flex justify-end gap-2 pt-2">
+            <Button variant="outline" onClick={onDone}>
+              Nueva generación
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  // === Preview + generate view ===
+  const pct = progress
+    ? Math.round((progress.done / Math.max(progress.total, 1)) * 100)
+    : 0;
 
   return (
     <Card>
@@ -772,12 +926,21 @@ function StepGenerate({
           )}
         </div>
 
+        {busy && progress && (
+          <div className="space-y-2">
+            <div className="flex items-center justify-between text-sm">
+              <span className="text-muted-foreground">
+                Generando contratos…
+              </span>
+              <span className="font-medium">
+                {progress.done} / {progress.total}
+              </span>
+            </div>
+            <Progress value={pct} />
+          </div>
+        )}
+
         <div className="flex items-center justify-end gap-3 pt-2">
-          {progress && (
-            <span className="text-sm text-muted-foreground">
-              Generando {progress.done} / {progress.total}…
-            </span>
-          )}
           <Button
             onClick={handleGenerate}
             disabled={!canGenerate || !templateBuffer || busy}
@@ -796,3 +959,27 @@ function StepGenerate({
     </Card>
   );
 }
+
+function SummaryStat({
+  label,
+  value,
+  tone,
+}: {
+  label: string;
+  value: number;
+  tone?: "success" | "error";
+}) {
+  return (
+    <div
+      className={cn(
+        "rounded-lg border p-4 text-center",
+        tone === "success" && "border-primary/30 bg-primary/5",
+        tone === "error" && "border-amber-500/30 bg-amber-500/5",
+      )}
+    >
+      <div className="text-2xl font-semibold tabular-nums">{value}</div>
+      <div className="text-xs text-muted-foreground mt-1">{label}</div>
+    </div>
+  );
+}
+
