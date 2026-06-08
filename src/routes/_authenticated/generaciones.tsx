@@ -2,9 +2,11 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
+  AlertCircle,
   ArrowLeft,
   ArrowRight,
   Check,
+  CheckCircle2,
   Download,
   FileSpreadsheet,
   FileText,
@@ -20,6 +22,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import { Label } from "@/components/ui/label";
+import { Progress } from "@/components/ui/progress";
 import {
   Select,
   SelectContent,
@@ -42,6 +45,7 @@ import {
 export const Route = createFileRoute("/_authenticated/generaciones")({
   component: GeneracionesPage,
 });
+
 
 type TemplateRow = {
   id: string;
