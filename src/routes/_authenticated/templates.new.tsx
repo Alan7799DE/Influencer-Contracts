@@ -182,7 +182,7 @@ function NewTemplatePage() {
         </div>
       </div>
 
-      <div className="grid gap-6 lg:grid-cols-[420px_1fr]">
+      <div className="grid gap-6 lg:grid-cols-[1fr_420px]">
         <div className="space-y-6">
           <Card>
             <CardHeader>
