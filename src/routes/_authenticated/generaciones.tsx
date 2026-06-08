@@ -1,24 +1,798 @@
-import { createFileRoute } from "@tanstack/react-router";
-import { FolderArchive } from "lucide-react";
+import { createFileRoute, Link } from "@tanstack/react-router";
+import { useQuery } from "@tanstack/react-query";
+import { useEffect, useMemo, useRef, useState } from "react";
+import {
+  ArrowLeft,
+  ArrowRight,
+  Check,
+  Download,
+  FileSpreadsheet,
+  FileText,
+  Loader2,
+  Upload,
+  Wand2,
+} from "lucide-react";
+import { toast } from "sonner";
+
+import { supabase } from "@/integrations/supabase/client";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Badge } from "@/components/ui/badge";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { cn } from "@/lib/utils";
+import type { VariableType } from "@/lib/docx-parser";
+import {
+  autoMapColumns,
+  formatValue,
+  parseCSV,
+  parseXLSX,
+  renderDocx,
+  sanitizeFilename,
+  type ParsedSheet,
+} from "@/lib/template-data";
 
 export const Route = createFileRoute("/_authenticated/generaciones")({
   component: GeneracionesPage,
 });
 
+type TemplateRow = {
+  id: string;
+  name: string;
+  storage_path: string;
+  variables: Array<{ name: string; label: string; type: VariableType }>;
+};
+
+const STEPS = [
+  { id: 1, title: "Template" },
+  { id: 2, title: "Datos" },
+  { id: 3, title: "Mapeo" },
+  { id: 4, title: "Nombre" },
+  { id: 5, title: "Generar" },
+] as const;
+
 function GeneracionesPage() {
+  const [step, setStep] = useState(1);
+  const [template, setTemplate] = useState<TemplateRow | null>(null);
+  const [sheet, setSheet] = useState<ParsedSheet | null>(null);
+  const [fileName, setFileName] = useState<string>("");
+  const [mapping, setMapping] = useState<Record<string, string>>({});
+  const [nameColumn, setNameColumn] = useState<string>("");
+
+  const allMapped =
+    !!template &&
+    template.variables.length > 0 &&
+    template.variables.every((v) => !!mapping[v.name]);
+  const canGenerate =
+    !!template && !!sheet && sheet.rows.length > 0 && allMapped && !!nameColumn;
+
+  function go(nextStep: number) {
+    if (nextStep < 1 || nextStep > STEPS.length) return;
+    setStep(nextStep);
+  }
+
+  function reset() {
+    setStep(1);
+    setTemplate(null);
+    setSheet(null);
+    setFileName("");
+    setMapping({});
+    setNameColumn("");
+  }
+
   return (
-    <div className="mx-auto max-w-3xl">
-      <div className="flex flex-col items-center justify-center rounded-xl border border-dashed bg-card py-20 px-6 text-center">
-        <div className="flex size-14 items-center justify-center rounded-full bg-accent text-accent-foreground">
-          <FolderArchive className="size-7" />
-        </div>
-        <h2 className="mt-6 text-xl font-semibold">Próximamente</h2>
-        <p className="mt-2 max-w-md text-sm text-muted-foreground">
-          Acá vas a ver el historial de generaciones masivas. Vas a poder subir
-          un CSV con tus influencers, mapear las columnas a las variables del
-          template y descargar un ZIP con todos los contratos en un click.
+    <div className="mx-auto max-w-5xl space-y-6">
+      <div>
+        <h2 className="text-2xl font-semibold tracking-tight">
+          Generación masiva
+        </h2>
+        <p className="text-sm text-muted-foreground mt-1">
+          Generá decenas de contratos en minutos desde un template y una planilla.
         </p>
       </div>
+
+      <Stepper current={step} />
+
+      {step === 1 && (
+        <StepTemplate
+          selected={template}
+          onSelect={(t) => {
+            if (template?.id !== t.id) {
+              // changing template: reset downstream state
+              setMapping({});
+              setNameColumn("");
+            }
+            setTemplate(t);
+          }}
+        />
+      )}
+
+      {step === 2 && (
+        <StepData
+          sheet={sheet}
+          fileName={fileName}
+          onParsed={(s, name) => {
+            setSheet(s);
+            setFileName(name);
+            // auto-map based on headers + template variables
+            if (template) {
+              setMapping(
+                autoMapColumns(
+                  template.variables.map((v) => v.name),
+                  s.headers,
+                ),
+              );
+              if (!nameColumn || !s.headers.includes(nameColumn)) {
+                setNameColumn(s.headers[0] ?? "");
+              }
+            }
+          }}
+        />
+      )}
+
+      {step === 3 && template && sheet && (
+        <StepMapping
+          template={template}
+          sheet={sheet}
+          mapping={mapping}
+          onChange={setMapping}
+        />
+      )}
+
+      {step === 4 && sheet && (
+        <StepName
+          sheet={sheet}
+          nameColumn={nameColumn}
+          onChange={setNameColumn}
+        />
+      )}
+
+      {step === 5 && template && sheet && (
+        <StepGenerate
+          template={template}
+          sheet={sheet}
+          mapping={mapping}
+          nameColumn={nameColumn}
+          canGenerate={canGenerate}
+          onDone={reset}
+        />
+      )}
+
+      <div className="flex items-center justify-between gap-3 border-t pt-4">
+        <Button
+          variant="outline"
+          onClick={() => go(step - 1)}
+          disabled={step === 1}
+        >
+          <ArrowLeft className="size-4" />
+          Atrás
+        </Button>
+        {step < STEPS.length ? (
+          <Button
+            onClick={() => go(step + 1)}
+            disabled={!canAdvance(step, {
+              template,
+              sheet,
+              allMapped,
+              nameColumn,
+            })}
+          >
+            Siguiente
+            <ArrowRight className="size-4" />
+          </Button>
+        ) : (
+          <Button variant="ghost" onClick={reset}>
+            Empezar de nuevo
+          </Button>
+        )}
+      </div>
     </div>
+  );
+}
+
+function canAdvance(
+  step: number,
+  s: {
+    template: TemplateRow | null;
+    sheet: ParsedSheet | null;
+    allMapped: boolean;
+    nameColumn: string;
+  },
+): boolean {
+  if (step === 1) return !!s.template;
+  if (step === 2) return !!s.sheet && s.sheet.rows.length > 0;
+  if (step === 3) return s.allMapped;
+  if (step === 4) return !!s.nameColumn;
+  return true;
+}
+
+function Stepper({ current }: { current: number }) {
+  return (
+    <ol className="flex items-center gap-2">
+      {STEPS.map((s, idx) => {
+        const isDone = current > s.id;
+        const isCurrent = current === s.id;
+        return (
+          <li key={s.id} className="flex items-center gap-2 flex-1">
+            <div
+              className={cn(
+                "flex size-8 items-center justify-center rounded-full text-xs font-medium border transition-colors",
+                isDone &&
+                  "bg-primary text-primary-foreground border-primary",
+                isCurrent &&
+                  "border-primary text-primary",
+                !isDone && !isCurrent && "text-muted-foreground",
+              )}
+            >
+              {isDone ? <Check className="size-4" /> : s.id}
+            </div>
+            <span
+              className={cn(
+                "text-sm",
+                isCurrent ? "font-medium" : "text-muted-foreground",
+              )}
+            >
+              {s.title}
+            </span>
+            {idx < STEPS.length - 1 && (
+              <div className="flex-1 h-px bg-border" />
+            )}
+          </li>
+        );
+      })}
+    </ol>
+  );
+}
+
+/* ============================== STEP 1 ============================== */
+
+function StepTemplate({
+  selected,
+  onSelect,
+}: {
+  selected: TemplateRow | null;
+  onSelect: (t: TemplateRow) => void;
+}) {
+  const { data, isLoading } = useQuery({
+    queryKey: ["templates"],
+    queryFn: async (): Promise<TemplateRow[]> => {
+      const { data, error } = await supabase
+        .from("templates")
+        .select("id,name,storage_path,variables")
+        .order("created_at", { ascending: false });
+      if (error) throw error;
+      return (data ?? []) as unknown as TemplateRow[];
+    },
+  });
+
+  if (isLoading) {
+    return (
+      <div className="grid gap-3">
+        {[1, 2, 3].map((i) => (
+          <Skeleton key={i} className="h-20 w-full" />
+        ))}
+      </div>
+    );
+  }
+
+  if (!data || data.length === 0) {
+    return (
+      <Card>
+        <CardContent className="flex flex-col items-center justify-center py-16 text-center">
+          <div className="flex size-14 items-center justify-center rounded-full bg-accent text-accent-foreground">
+            <FileText className="size-7" />
+          </div>
+          <h3 className="mt-4 text-lg font-medium">No tenés templates todavía</h3>
+          <p className="mt-1 max-w-sm text-sm text-muted-foreground">
+            Antes de generar contratos en lote necesitás al menos un template.
+          </p>
+          <Button asChild className="mt-6">
+            <Link to="/templates/new">Crear template</Link>
+          </Button>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle className="text-base">1. Elegí un template</CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-3">
+        {data.map((t) => {
+          const active = selected?.id === t.id;
+          return (
+            <button
+              key={t.id}
+              type="button"
+              onClick={() => onSelect(t)}
+              className={cn(
+                "w-full text-left rounded-lg border p-4 transition-all",
+                active
+                  ? "border-primary bg-primary/5 ring-2 ring-primary/30"
+                  : "hover:bg-muted/50",
+              )}
+            >
+              <div className="flex items-center gap-3">
+                <div className="flex size-10 items-center justify-center rounded-lg bg-accent text-accent-foreground">
+                  <FileText className="size-5" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="font-medium truncate">{t.name}</div>
+                  <div className="text-xs text-muted-foreground mt-0.5">
+                    {t.variables.length} variables
+                  </div>
+                </div>
+                {active && <Check className="size-5 text-primary" />}
+              </div>
+              {active && (
+                <div className="mt-3 flex flex-wrap gap-1.5">
+                  {t.variables.map((v) => (
+                    <Badge
+                      key={v.name}
+                      variant="secondary"
+                      className="font-normal"
+                    >
+                      {v.label}
+                      <span className="ml-1 text-muted-foreground">
+                        · {v.type}
+                      </span>
+                    </Badge>
+                  ))}
+                </div>
+              )}
+            </button>
+          );
+        })}
+      </CardContent>
+    </Card>
+  );
+}
+
+/* ============================== STEP 2 ============================== */
+
+function StepData({
+  sheet,
+  fileName,
+  onParsed,
+}: {
+  sheet: ParsedSheet | null;
+  fileName: string;
+  onParsed: (sheet: ParsedSheet, fileName: string) => void;
+}) {
+  const inputRef = useRef<HTMLInputElement>(null);
+  const [busy, setBusy] = useState(false);
+
+  async function handle(file: File | null) {
+    if (!file) return;
+    const lower = file.name.toLowerCase();
+    setBusy(true);
+    try {
+      let parsed: ParsedSheet;
+      if (lower.endsWith(".csv")) parsed = await parseCSV(file);
+      else if (lower.endsWith(".xlsx") || lower.endsWith(".xls"))
+        parsed = await parseXLSX(file);
+      else throw new Error("Subí un archivo .csv o .xlsx");
+      if (parsed.headers.length === 0)
+        throw new Error("No se detectaron columnas en la primera fila");
+      onParsed(parsed, file.name);
+      toast.success(`${parsed.rows.length} filas detectadas`);
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : "Error al leer el archivo";
+      toast.error(msg);
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle className="text-base">2. Subí los datos</CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        <input
+          ref={inputRef}
+          type="file"
+          accept=".csv,.xlsx,.xls"
+          className="hidden"
+          onChange={(e) => handle(e.target.files?.[0] ?? null)}
+        />
+        {!sheet ? (
+          <button
+            type="button"
+            onClick={() => inputRef.current?.click()}
+            disabled={busy}
+            className="flex w-full flex-col items-center justify-center gap-2 rounded-lg border-2 border-dashed border-input bg-muted/30 px-4 py-12 text-sm transition-colors hover:bg-muted/60"
+          >
+            {busy ? (
+              <Loader2 className="size-6 animate-spin text-muted-foreground" />
+            ) : (
+              <Upload className="size-6 text-muted-foreground" />
+            )}
+            <span className="font-medium">Subir CSV o Excel</span>
+            <span className="text-xs text-muted-foreground">
+              La primera fila debe contener los nombres de las columnas
+            </span>
+          </button>
+        ) : (
+          <>
+            <div className="flex items-center gap-3 rounded-lg border bg-card px-3 py-2.5">
+              <FileSpreadsheet className="size-5 text-primary shrink-0" />
+              <div className="flex-1 min-w-0">
+                <div className="text-sm font-medium truncate">{fileName}</div>
+                <div className="text-xs text-muted-foreground">
+                  {sheet.rows.length} filas · {sheet.headers.length} columnas
+                </div>
+              </div>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => inputRef.current?.click()}
+              >
+                Cambiar
+              </Button>
+            </div>
+
+            <div className="rounded-lg border overflow-hidden">
+              <div className="overflow-auto max-h-64">
+                <table className="w-full text-xs">
+                  <thead className="bg-muted/60 sticky top-0">
+                    <tr>
+                      {sheet.headers.map((h) => (
+                        <th
+                          key={h}
+                          className="px-3 py-2 text-left font-medium whitespace-nowrap"
+                        >
+                          {h}
+                        </th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {sheet.rows.slice(0, 3).map((row, i) => (
+                      <tr key={i} className="border-t">
+                        {sheet.headers.map((h) => (
+                          <td
+                            key={h}
+                            className="px-3 py-2 whitespace-nowrap text-muted-foreground"
+                          >
+                            {row[h] || "—"}
+                          </td>
+                        ))}
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+              {sheet.rows.length > 3 && (
+                <div className="border-t px-3 py-2 text-xs text-muted-foreground bg-muted/30">
+                  Mostrando 3 de {sheet.rows.length} filas
+                </div>
+              )}
+            </div>
+          </>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
+
+/* ============================== STEP 3 ============================== */
+
+function StepMapping({
+  template,
+  sheet,
+  mapping,
+  onChange,
+}: {
+  template: TemplateRow;
+  sheet: ParsedSheet;
+  mapping: Record<string, string>;
+  onChange: (m: Record<string, string>) => void;
+}) {
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle className="text-base">3. Mapeá las variables</CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-3">
+        {template.variables.map((v) => (
+          <div
+            key={v.name}
+            className="grid grid-cols-1 md:grid-cols-[1fr_1fr] gap-3 items-center rounded-lg border p-3"
+          >
+            <div className="space-y-1">
+              <div className="font-medium text-sm">{v.label}</div>
+              <div className="flex items-center gap-2">
+                <code className="rounded bg-muted px-1.5 py-0.5 text-xs font-mono text-primary">
+                  {`{{${v.name}}}`}
+                </code>
+                <Badge variant="outline" className="font-normal">
+                  {v.type}
+                </Badge>
+              </div>
+            </div>
+            <Select
+              value={mapping[v.name] ?? ""}
+              onValueChange={(val) =>
+                onChange({ ...mapping, [v.name]: val })
+              }
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Elegí una columna" />
+              </SelectTrigger>
+              <SelectContent>
+                {sheet.headers.map((h) => (
+                  <SelectItem key={h} value={h}>
+                    {h}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        ))}
+      </CardContent>
+    </Card>
+  );
+}
+
+/* ============================== STEP 4 ============================== */
+
+function StepName({
+  sheet,
+  nameColumn,
+  onChange,
+}: {
+  sheet: ParsedSheet;
+  nameColumn: string;
+  onChange: (col: string) => void;
+}) {
+  const sampleRaw = nameColumn ? sheet.rows[0]?.[nameColumn] ?? "" : "";
+  const sampleFile = `contrato_${sanitizeFilename(sampleRaw)}.docx`;
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle className="text-base">4. Nombre de los archivos</CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        <div className="space-y-2">
+          <Label>Columna para nombrar cada contrato</Label>
+          <Select value={nameColumn} onValueChange={onChange}>
+            <SelectTrigger>
+              <SelectValue placeholder="Elegí una columna" />
+            </SelectTrigger>
+            <SelectContent>
+              {sheet.headers.map((h) => (
+                <SelectItem key={h} value={h}>
+                  {h}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+
+        {nameColumn && (
+          <div className="rounded-lg border bg-muted/30 p-4 space-y-1">
+            <div className="text-xs text-muted-foreground">
+              Ejemplo (primera fila)
+            </div>
+            <div className="flex items-center gap-2">
+              <FileText className="size-4 text-primary" />
+              <code className="text-sm font-mono">{sampleFile}</code>
+            </div>
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
+
+/* ============================== STEP 5 ============================== */
+
+function StepGenerate({
+  template,
+  sheet,
+  mapping,
+  nameColumn,
+  canGenerate,
+  onDone,
+}: {
+  template: TemplateRow;
+  sheet: ParsedSheet;
+  mapping: Record<string, string>;
+  nameColumn: string;
+  canGenerate: boolean;
+  onDone: () => void;
+}) {
+  const previewRef = useRef<HTMLDivElement>(null);
+  const [busy, setBusy] = useState(false);
+  const [progress, setProgress] = useState<{ done: number; total: number } | null>(
+    null,
+  );
+  const [templateBuffer, setTemplateBuffer] = useState<ArrayBuffer | null>(null);
+  const [previewBlob, setPreviewBlob] = useState<Blob | null>(null);
+
+  // Build data for first row
+  const firstRowData = useMemo<Record<string, string>>(() => {
+    const row = sheet.rows[0] ?? {};
+    const out: Record<string, string> = {};
+    for (const v of template.variables) {
+      const col = mapping[v.name];
+      const raw = col ? row[col] ?? "" : "";
+      out[v.name] = formatValue(raw, v.type);
+    }
+    return out;
+  }, [sheet, template, mapping]);
+
+  // Download template once
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const { data, error } = await supabase.storage
+          .from("templates")
+          .download(template.storage_path);
+        if (error) throw error;
+        const buf = await data.arrayBuffer();
+        if (!cancelled) setTemplateBuffer(buf);
+      } catch (err) {
+        if (!cancelled) {
+          const msg =
+            err instanceof Error ? err.message : "No se pudo descargar el template";
+          toast.error(msg);
+        }
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [template.storage_path]);
+
+  // Build preview blob whenever data or template buffer changes
+  useEffect(() => {
+    if (!templateBuffer || !canGenerate) return;
+    let cancelled = false;
+    (async () => {
+      try {
+        const bytes = await renderDocx(templateBuffer, firstRowData);
+        if (cancelled) return;
+        const blob = new Blob([bytes as BlobPart], {
+          type: "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+        });
+        setPreviewBlob(blob);
+      } catch (err) {
+        console.error(err);
+        if (!cancelled) toast.error("No se pudo renderizar el preview");
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [templateBuffer, firstRowData, canGenerate]);
+
+  // Render preview into the DOM
+  useEffect(() => {
+    if (!previewBlob || !previewRef.current) return;
+    let cancelled = false;
+    (async () => {
+      try {
+        const { renderAsync } = await import("docx-preview");
+        if (cancelled || !previewRef.current) return;
+        previewRef.current.innerHTML = "";
+        await renderAsync(previewBlob, previewRef.current, undefined, {
+          inWrapper: true,
+          breakPages: true,
+          experimental: true,
+        });
+      } catch (err) {
+        console.error(err);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [previewBlob]);
+
+  async function handleGenerate() {
+    if (!templateBuffer || !canGenerate) return;
+    setBusy(true);
+    setProgress({ done: 0, total: sheet.rows.length });
+    try {
+      const [{ default: JSZip }, { saveAs }] = await Promise.all([
+        import("jszip"),
+        import("file-saver"),
+      ]);
+      const zip = new JSZip();
+      const used = new Map<string, number>();
+
+      for (let i = 0; i < sheet.rows.length; i++) {
+        const row = sheet.rows[i];
+        const data: Record<string, string> = {};
+        for (const v of template.variables) {
+          const col = mapping[v.name];
+          data[v.name] = formatValue(col ? row[col] ?? "" : "", v.type);
+        }
+        const base = `contrato_${sanitizeFilename(row[nameColumn] ?? "")}`;
+        const count = used.get(base) ?? 0;
+        used.set(base, count + 1);
+        const name = count === 0 ? `${base}.docx` : `${base}_${count + 1}.docx`;
+        const bytes = await renderDocx(templateBuffer, data);
+        zip.file(name, bytes);
+        setProgress({ done: i + 1, total: sheet.rows.length });
+      }
+
+      const blob = await zip.generateAsync({ type: "blob" });
+      const zipName = `${sanitizeFilename(template.name)}_${sheet.rows.length}_contratos.zip`;
+      saveAs(blob, zipName);
+      toast.success(`${sheet.rows.length} contratos generados`);
+      onDone();
+    } catch (err) {
+      console.error(err);
+      const msg = err instanceof Error ? err.message : "Error al generar el ZIP";
+      toast.error(msg);
+    } finally {
+      setBusy(false);
+      setProgress(null);
+    }
+  }
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle className="text-base flex items-center justify-between">
+          <span>5. Preview y generación</span>
+          <Badge variant="secondary" className="font-normal">
+            {sheet.rows.length} contratos
+          </Badge>
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        <div className="text-xs text-muted-foreground">
+          Vista previa del primer contrato con los datos de la primera fila.
+        </div>
+
+        <div className="rounded-lg border bg-muted/40 max-h-[60vh] overflow-auto p-4">
+          {!templateBuffer ? (
+            <div className="flex items-center gap-2 py-12 justify-center text-sm text-muted-foreground">
+              <Loader2 className="size-4 animate-spin" />
+              Cargando template…
+            </div>
+          ) : (
+            <div ref={previewRef} />
+          )}
+        </div>
+
+        <div className="flex items-center justify-end gap-3 pt-2">
+          {progress && (
+            <span className="text-sm text-muted-foreground">
+              Generando {progress.done} / {progress.total}…
+            </span>
+          )}
+          <Button
+            onClick={handleGenerate}
+            disabled={!canGenerate || !templateBuffer || busy}
+            size="lg"
+          >
+            {busy ? (
+              <Loader2 className="size-4 animate-spin" />
+            ) : (
+              <Download className="size-4" />
+            )}
+            Generar contratos
+            <Wand2 className="size-4" />
+          </Button>
+        </div>
+      </CardContent>
+    </Card>
   );
 }
