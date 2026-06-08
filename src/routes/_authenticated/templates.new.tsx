@@ -182,8 +182,26 @@ function NewTemplatePage() {
         </div>
       </div>
 
-      <div className="grid gap-6 lg:grid-cols-[420px_1fr]">
-        <div className="space-y-6">
+      <div className="grid gap-6 lg:grid-cols-[1fr_420px]">
+        <Card className="overflow-hidden lg:order-1 order-2">
+          <CardHeader>
+            <CardTitle className="text-base">Vista previa</CardTitle>
+          </CardHeader>
+          <CardContent className="p-0">
+            <div className="bg-muted/40 border-t max-h-[calc(100vh-260px)] overflow-auto p-4">
+              {!file ? (
+                <div className="flex flex-col items-center justify-center gap-2 py-24 text-center text-sm text-muted-foreground">
+                  <FileText className="size-8 opacity-40" />
+                  La vista previa aparece acá una vez que subas el archivo.
+                </div>
+              ) : (
+                <div ref={previewRef} />
+              )}
+            </div>
+          </CardContent>
+        </Card>
+
+        <div className="space-y-6 lg:order-2 order-1">
           <Card>
             <CardHeader>
               <CardTitle className="text-base">1. Información</CardTitle>
@@ -347,23 +365,6 @@ function NewTemplatePage() {
           </div>
         </div>
 
-        <Card className="overflow-hidden">
-          <CardHeader>
-            <CardTitle className="text-base">Vista previa</CardTitle>
-          </CardHeader>
-          <CardContent className="p-0">
-            <div className="bg-muted/40 border-t max-h-[calc(100vh-260px)] overflow-auto p-4">
-              {!file ? (
-                <div className="flex flex-col items-center justify-center gap-2 py-24 text-center text-sm text-muted-foreground">
-                  <FileText className="size-8 opacity-40" />
-                  La vista previa aparece acá una vez que subas el archivo.
-                </div>
-              ) : (
-                <div ref={previewRef} />
-              )}
-            </div>
-          </CardContent>
-        </Card>
       </div>
     </div>
   );
