@@ -162,12 +162,14 @@ function GeneracionesPage() {
         <StepGenerate
           template={template}
           sheet={sheet}
+          csvFilename={fileName}
           mapping={mapping}
           nameColumn={nameColumn}
           canGenerate={canGenerate}
           onDone={reset}
         />
       )}
+
 
       <div className="flex items-center justify-between gap-3 border-t pt-4">
         <Button
