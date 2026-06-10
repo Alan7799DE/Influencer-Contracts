@@ -29,30 +29,58 @@ export async function parseCSV(file: File): Promise<ParsedSheet> {
   return { headers, rows };
 }
 
-export async function parseXLSX(file: File): Promise<ParsedSheet> {
+export async function parseXLSXRaw(file: File): Promise<string[][]> {
   const buf = await file.arrayBuffer();
   const wb = XLSX.read(buf, { type: "array", cellDates: false });
   const sheetName = wb.SheetNames[0];
   if (!sheetName) throw new Error("The Excel file has no sheets");
   const sheet = wb.Sheets[sheetName];
-  const raw = XLSX.utils.sheet_to_json<Record<string, unknown>>(sheet, {
+  const raw = XLSX.utils.sheet_to_json<Array<unknown>>(sheet, {
     header: 1,
     raw: true,
     defval: "",
   }) as unknown as Array<Array<unknown>>;
-  if (raw.length === 0) return { headers: [], rows: [] };
-  const headers = (raw[0] ?? []).map((h) => String(h ?? "").trim()).filter(Boolean);
+  const maxCols = raw.reduce((m, r) => Math.max(m, r?.length ?? 0), 0);
+  return raw.map((row) => {
+    const out: string[] = [];
+    for (let i = 0; i < maxCols; i++) out.push(stringifyCell(row?.[i]));
+    return out;
+  });
+}
+
+export function buildSheetFromRaw(
+  raw: string[][],
+  headerRowIdx: number,
+): ParsedSheet {
+  if (raw.length === 0 || headerRowIdx < 0 || headerRowIdx >= raw.length) {
+    return { headers: [], rows: [] };
+  }
+  const headerRow = raw[headerRowIdx];
+  const headers: string[] = [];
+  const seen = new Map<string, number>();
+  headerRow.forEach((h, idx) => {
+    let name = String(h ?? "").trim();
+    if (!name) name = `Column ${idx + 1}`;
+    const n = seen.get(name) ?? 0;
+    seen.set(name, n + 1);
+    headers.push(n === 0 ? name : `${name} (${n + 1})`);
+  });
   const rows: Array<Record<string, string>> = [];
-  for (let i = 1; i < raw.length; i++) {
+  for (let i = headerRowIdx + 1; i < raw.length; i++) {
     const row = raw[i];
     if (!row || row.every((v) => String(v ?? "").trim() === "")) continue;
     const obj: Record<string, string> = {};
     headers.forEach((h, idx) => {
-      obj[h] = stringifyCell(row[idx]);
+      obj[h] = String(row[idx] ?? "").trim();
     });
     rows.push(obj);
   }
   return { headers, rows };
+}
+
+export async function parseXLSX(file: File): Promise<ParsedSheet> {
+  const raw = await parseXLSXRaw(file);
+  return buildSheetFromRaw(raw, 0);
 }
 
 function stringifyCell(v: unknown): string {
