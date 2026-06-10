@@ -905,12 +905,15 @@ function StepGenerate({
         const row = sheet.rows[i];
         const rowNumber = i + 2; // header is row 1, first data row = 2
 
-        // Validate: every mapped variable must have a non-empty value
+        // Validate: every variable must have a non-empty value
         const missing: string[] = [];
         const data: Record<string, string> = {};
         for (const v of template.variables) {
-          const col = mapping[v.name];
-          const raw = col ? (row[col] ?? "").trim() : "";
+          const src = sources[v.name] ?? "column";
+          const raw =
+            src === "fixed"
+              ? (constants[v.name] ?? "").trim()
+              : (mapping[v.name] ? (row[mapping[v.name]] ?? "").trim() : "");
           if (!raw) {
             missing.push(v.label);
           }
@@ -920,7 +923,7 @@ function StepGenerate({
         if (missing.length > 0) {
           errors.push({
             row: rowNumber,
-            reason: `Falta el valor de ${missing.map((m) => `'${m}'`).join(", ")}`,
+            reason: `Missing value for ${missing.map((m) => `'${m}'`).join(", ")}`,
           });
           setProgress({ done: i + 1, total: sheet.rows.length });
           continue;
