@@ -866,24 +866,32 @@ function StepGenerate({
   useEffect(() => {
     if (!previewBlob || !previewRef.current || result) return;
     let cancelled = false;
+    const target = previewRef.current;
     (async () => {
       try {
         const { renderAsync } = await import("docx-preview");
-        if (cancelled || !previewRef.current) return;
-        previewRef.current.innerHTML = "";
-        await renderAsync(previewBlob, previewRef.current, undefined, {
+        if (cancelled) return;
+        target.innerHTML = "";
+        await renderAsync(previewBlob, target, undefined, {
           inWrapper: true,
           breakPages: true,
           experimental: true,
+          ignoreWidth: false,
+          ignoreHeight: false,
         });
       } catch (err) {
-        console.error(err);
+        console.error("docx-preview failed:", err);
+        if (!cancelled) {
+          target.innerHTML =
+            '<div style="padding:24px;color:#b45309;font-size:13px">Could not render the visual preview of the document. The values above show what will be inserted in each variable.</div>';
+        }
       }
     })();
     return () => {
       cancelled = true;
     };
   }, [previewBlob, result]);
+
 
   async function handleGenerate() {
     if (!templateBuffer || !canGenerate) return;
