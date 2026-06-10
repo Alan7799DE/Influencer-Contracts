@@ -34,9 +34,9 @@ import { cn } from "@/lib/utils";
 import type { VariableType } from "@/lib/docx-parser";
 import {
   autoMapColumns,
+  buildSheetFromRaw,
   formatValue,
-  parseCSV,
-  parseXLSX,
+  parseXLSXRaw,
   renderDocx,
   sanitizeFilename,
   type ParsedSheet,
