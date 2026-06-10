@@ -129,10 +129,13 @@ function TemplatesPage() {
                 <div className="flex-1 min-w-0">
                   <div className="font-medium truncate">{t.name}</div>
                   <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground">
-                    <span>
-                      Created on{" "}
-                      {format(new Date(t.created_at), "LLLL d, yyyy")}
-                    </span>
+                    {(() => {
+                      const d = t.created_at ? new Date(t.created_at) : null;
+                      const valid = d && !isNaN(d.getTime());
+                      return valid ? (
+                        <span>Created on {format(d!, "LLLL d, yyyy")}</span>
+                      ) : null;
+                    })()}
                     <Badge variant="secondary" className="font-normal">
                       <VariableIcon className="size-3" />
                       {t.variables.length}{" "}
