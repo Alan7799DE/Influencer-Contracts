@@ -142,6 +142,8 @@ function GeneracionesPage() {
             if (template?.id !== t.id) {
               // changing template: reset downstream state
               setMapping({});
+              setSources({});
+              setConstants({});
               setNameColumn("");
             }
             setTemplate(t);
@@ -164,7 +166,11 @@ function GeneracionesPage() {
           template={template}
           sheet={sheet}
           mapping={mapping}
-          onChange={setMapping}
+          sources={sources}
+          constants={constants}
+          onMappingChange={setMapping}
+          onSourcesChange={setSources}
+          onConstantsChange={setConstants}
         />
       )}
 
@@ -182,6 +188,8 @@ function GeneracionesPage() {
           sheet={sheet}
           csvFilename={fileName}
           mapping={mapping}
+          sources={sources}
+          constants={constants}
           nameColumn={nameColumn}
           canGenerate={canGenerate}
           onDone={reset}
