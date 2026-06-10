@@ -85,7 +85,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       {
         name: "description",
         content:
-          "Generate personalized influencer marketing contracts in bulk from a template and a CSV.",
+          "Generate personalized influencer marketing contracts in bulk from a template and an Excel file.",
       },
       { property: "og:title", content: "Contracts · Bulk generator" },
       { name: "twitter:title", content: "Contracts · Bulk generator" },

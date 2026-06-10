@@ -10,6 +10,7 @@ import {
   Download,
   FileSpreadsheet,
   FileText,
+  Info,
   Loader2,
   Upload,
   Wand2,
@@ -32,7 +33,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
-import type { VariableType } from "@/lib/docx-parser";
+import { normalizeVariableType, type VariableType } from "@/lib/docx-parser";
 import {
   autoMapColumns,
   buildSheetFromRaw,
@@ -43,8 +44,8 @@ import {
   type ParsedSheet,
 } from "@/lib/template-data";
 
-export const Route = createFileRoute("/_authenticated/generaciones")({
-  component: GeneracionesPage,
+export const Route = createFileRoute("/_authenticated/generations")({
+  component: GenerationsPage,
 });
 
 
@@ -63,7 +64,7 @@ const STEPS = [
   { id: 5, title: "Generate" },
 ] as const;
 
-function GeneracionesPage() {
+function GenerationsPage() {
   const [step, setStep] = useState(1);
   const [template, setTemplate] = useState<TemplateRow | null>(null);
   const [sheet, setSheet] = useState<ParsedSheet | null>(null);
@@ -301,7 +302,14 @@ function StepTemplate({
         .select("id,name,storage_path,variables")
         .order("created_at", { ascending: false });
       if (error) throw error;
-      return (data ?? []) as unknown as TemplateRow[];
+      // Normalize legacy variable types ("texto"/"fecha"/"moneda") to English.
+      return ((data ?? []) as unknown as TemplateRow[]).map((t) => ({
+        ...t,
+        variables: t.variables.map((v) => ({
+          ...v,
+          type: normalizeVariableType(v.type),
+        })),
+      }));
     },
   });
 
@@ -350,12 +358,16 @@ function StepTemplate({
               className={cn(
                 "w-full text-left rounded-lg border p-4 transition-all",
                 active
-                  ? "border-primary bg-primary/5 ring-2 ring-primary/30"
+                  ? "border-primary bg-primary/10 ring-2 ring-primary shadow-sm"
                   : "hover:bg-muted/50",
-              )}
-            >
+              )}>
               <div className="flex items-center gap-3">
-                <div className="flex size-10 items-center justify-center rounded-lg bg-accent text-accent-foreground">
+                <div className={cn(
+                  "flex size-10 items-center justify-center rounded-lg",
+                  active
+                    ? "bg-primary text-primary-foreground"
+                    : "bg-accent text-accent-foreground",
+                )}>
                   <FileText className="size-5" />
                 </div>
                 <div className="flex-1 min-w-0">
@@ -371,11 +383,9 @@ function StepTemplate({
                   {t.variables.map((v) => (
                     <Badge
                       key={v.name}
-                      variant="secondary"
-                      className="font-normal"
-                    >
+                      className="font-normal bg-primary/10 text-primary border-primary/20 hover:bg-primary/20">
                       {v.label}
-                      <span className="ml-1 text-muted-foreground">
+                      <span className="ml-1 text-primary/70">
                         · {v.type}
                       </span>
                     </Badge>
@@ -489,8 +499,11 @@ function StepData({
               </Button>
             </div>
 
-            <div className="text-xs text-muted-foreground">
-              Click the row that contains your column names. Rows above it will be ignored; rows below it become your data.
+            <div className="flex items-start gap-2.5 rounded-lg border border-primary/20 bg-primary/5 px-3 py-2.5">
+              <Info className="size-4 text-primary shrink-0 mt-0.5" />
+              <span className="text-sm font-medium text-foreground">
+                Click the row that contains your column names. Rows above it will be ignored; rows below it become your data.
+              </span>
             </div>
 
             <div className="rounded-lg border overflow-hidden">
@@ -599,16 +612,19 @@ function StepMapping({
     <Card>
       <CardHeader>
         <CardTitle className="text-base">3. Map the variables</CardTitle>
-        <p className="text-xs text-muted-foreground mt-1">
-          For each variable, pick a column from your file or set a fixed value
-          that will be the same across every contract.
-        </p>
+        <div className="flex items-start gap-2.5 rounded-lg border border-primary/20 bg-primary/5 px-3 py-2.5 mt-2">
+          <Info className="size-4 text-primary shrink-0 mt-0.5" />
+          <p className="text-sm font-medium text-foreground">
+            For each variable, pick a column from your file or set a fixed value
+            that will be the same across every contract.
+          </p>
+        </div>
       </CardHeader>
       <CardContent className="space-y-3">
         {template.variables.map((v) => {
           const source = sources[v.name] ?? "column";
           const inputType =
-            v.type === "fecha" ? "date" : v.type === "moneda" ? "number" : "text";
+            v.type === "date" ? "date" : v.type === "currency" ? "number" : "text";
           return (
             <div
               key={v.name}
@@ -688,9 +704,9 @@ function StepMapping({
                       })
                     }
                     placeholder={
-                      v.type === "moneda"
+                      v.type === "currency"
                         ? "e.g. 5000"
-                        : v.type === "fecha"
+                        : v.type === "date"
                           ? ""
                           : `e.g. ${v.label}`
                     }
@@ -789,6 +805,7 @@ function StepGenerate({
   onDone: () => void;
 }) {
   const previewRef = useRef<HTMLDivElement>(null);
+  const cancelRef = useRef(false);
   const [busy, setBusy] = useState(false);
   const [progress, setProgress] = useState<{ done: number; total: number } | null>(
     null,
@@ -799,6 +816,8 @@ function StepGenerate({
     total: number;
     success: number;
     errors: Array<{ row: number; reason: string }>;
+    warnings: Array<{ row: number; reason: string }>;
+    cancelled: boolean;
   } | null>(null);
 
   // Build data for first row
@@ -895,11 +914,14 @@ function StepGenerate({
 
   async function handleGenerate() {
     if (!templateBuffer || !canGenerate) return;
+    cancelRef.current = false;
     setBusy(true);
     setProgress({ done: 0, total: sheet.rows.length });
 
     const errors: Array<{ row: number; reason: string }> = [];
+    const warnings: Array<{ row: number; reason: string }> = [];
     let successCount = 0;
+    let cancelled = false;
 
     try {
       const [{ default: JSZip }, { saveAs }] = await Promise.all([
@@ -910,10 +932,15 @@ function StepGenerate({
       const used = new Map<string, number>();
 
       for (let i = 0; i < sheet.rows.length; i++) {
+        if (cancelRef.current) {
+          cancelled = true;
+          break;
+        }
         const row = sheet.rows[i];
         const rowNumber = i + 2; // header is row 1, first data row = 2
 
-        // Validate: every variable must have a non-empty value
+        // Empty values are allowed — they render as blank — but we collect a
+        // warning so the user knows which contracts came out incomplete.
         const missing: string[] = [];
         const data: Record<string, string> = {};
         for (const v of template.variables) {
@@ -922,47 +949,49 @@ function StepGenerate({
             src === "fixed"
               ? (constants[v.name] ?? "").trim()
               : (mapping[v.name] ? (row[mapping[v.name]] ?? "").trim() : "");
-          if (!raw) {
-            missing.push(v.label);
-          }
+          if (!raw) missing.push(v.label);
           data[v.name] = formatValue(raw, v.type);
         }
 
-        if (missing.length > 0) {
-          errors.push({
-            row: rowNumber,
-            reason: `Missing value for ${missing.map((m) => `'${m}'`).join(", ")}`,
-          });
-          setProgress({ done: i + 1, total: sheet.rows.length });
-          continue;
-        }
-
-        // Validate name column has a value too
-        const nameRaw = (row[nameColumn] ?? "").trim();
+        // Filename: if the name column is empty/null, fall back to the row
+        // number so the contract is still generated (with a generic name).
+        let nameRaw = (row[nameColumn] ?? "").trim();
+        let usedFallbackName = false;
         if (!nameRaw) {
-          errors.push({
-            row: rowNumber,
-            reason: `Missing value for filename column ('${nameColumn}')`,
-          });
-          setProgress({ done: i + 1, total: sheet.rows.length });
-          continue;
+          nameRaw = `row_${rowNumber}`;
+          usedFallbackName = true;
         }
 
         try {
-          const base = `contrato_${sanitizeFilename(nameRaw)}`;
+          const base = `contract_${sanitizeFilename(nameRaw)}`;
           const count = used.get(base) ?? 0;
           used.set(base, count + 1);
           const name = count === 0 ? `${base}.docx` : `${base}_${count + 1}.docx`;
           const bytes = await renderDocx(templateBuffer, data);
           zip.file(name, bytes);
           successCount++;
+
+          const notes: string[] = [];
+          if (missing.length > 0) {
+            notes.push(
+              `empty field(s): ${missing.map((m) => `'${m}'`).join(", ")}`,
+            );
+          }
+          if (usedFallbackName) {
+            notes.push(`empty name column ('${nameColumn}') — named "${name}"`);
+          }
+          if (notes.length > 0) {
+            warnings.push({ row: rowNumber, reason: notes.join("; ") });
+          }
         } catch (err) {
-          const msg = err instanceof Error ? err.message : "Render error";
-          errors.push({ row: rowNumber, reason: msg });
+          errors.push({
+            row: rowNumber,
+            reason: err instanceof Error ? err.message : "Render error",
+          });
         }
 
         setProgress({ done: i + 1, total: sheet.rows.length });
-        // Yield so the UI can repaint between iterations
+        // Yield so the UI can repaint (and a cancel click can register).
         if (i % 5 === 0) await new Promise((r) => setTimeout(r, 0));
       }
 
@@ -972,9 +1001,14 @@ function StepGenerate({
         saveAs(blob, zipName);
       }
 
-      const status = errors.length === 0 ? "completed" : "completed_with_errors";
+      const status = cancelled
+        ? "cancelled"
+        : errors.length === 0
+          ? "completed"
+          : "completed_with_errors";
 
-      // Save job metadata (best-effort)
+      // Save job metadata (best-effort). Errors and warnings are stored
+      // together with a severity tag for a future history view.
       try {
         const { error: insertError } = await supabase.from("jobs").insert({
           template_id: template.id,
@@ -984,7 +1018,10 @@ function StepGenerate({
           total_rows: sheet.rows.length,
           success_count: successCount,
           error_count: errors.length,
-          error_details: errors,
+          error_details: [
+            ...errors.map((e) => ({ ...e, severity: "error" })),
+            ...warnings.map((w) => ({ ...w, severity: "warning" })),
+          ],
           status,
         });
         if (insertError) console.error("Error saving job:", insertError);
@@ -992,14 +1029,26 @@ function StepGenerate({
         console.error("Error saving job:", err);
       }
 
-      setResult({ total: sheet.rows.length, success: successCount, errors });
+      setResult({
+        total: sheet.rows.length,
+        success: successCount,
+        errors,
+        warnings,
+        cancelled,
+      });
 
-      if (errors.length === 0) {
-        toast.success(`${successCount} contracts generated`);
-      } else if (successCount > 0) {
+      if (cancelled) {
         toast.warning(
-          `${successCount} generated, ${errors.length} with errors`,
+          `Cancelled — ${successCount} contract${successCount === 1 ? "" : "s"} generated so far`,
         );
+      } else if (errors.length === 0 && warnings.length === 0) {
+        toast.success(`${successCount} contracts generated`);
+      } else if (errors.length === 0) {
+        toast.warning(
+          `${successCount} generated, ${warnings.length} with warnings`,
+        );
+      } else if (successCount > 0) {
+        toast.warning(`${successCount} generated, ${errors.length} failed`);
       } else {
         toast.error("No contracts could be generated");
       }
@@ -1014,55 +1063,72 @@ function StepGenerate({
 
   // === Summary view ===
   if (result) {
-    const allOk = result.errors.length === 0;
+    const hasErrors = result.errors.length > 0;
+    const hasWarnings = result.warnings.length > 0;
+    const clean = !hasErrors && !hasWarnings && !result.cancelled;
+
+    const title = result.cancelled
+      ? "Generation cancelled"
+      : hasErrors
+        ? "Generation finished with errors"
+        : hasWarnings
+          ? "Generation finished with warnings"
+          : "Generation completed";
+
     return (
       <Card>
         <CardHeader>
           <CardTitle className="text-base flex items-center gap-2">
-            {allOk ? (
+            {clean ? (
               <CheckCircle2 className="size-5 text-primary" />
             ) : (
               <AlertCircle className="size-5 text-amber-600" />
             )}
-            <span>
-              {allOk ? "Generation completed" : "Generation finished with errors"}
-            </span>
+            <span>{title}</span>
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="grid grid-cols-3 gap-3">
-            <SummaryStat label="Total" value={result.total} />
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            <SummaryStat label="Total rows" value={result.total} />
             <SummaryStat
               label="Generated"
               value={result.success}
               tone="success"
             />
             <SummaryStat
-              label="With errors"
+              label="Warnings"
+              value={result.warnings.length}
+              tone={hasWarnings ? "warning" : undefined}
+            />
+            <SummaryStat
+              label="Failed"
               value={result.errors.length}
-              tone={result.errors.length > 0 ? "error" : undefined}
+              tone={hasErrors ? "error" : undefined}
             />
           </div>
 
-          {result.errors.length > 0 && (
-            <div className="rounded-lg border bg-muted/30">
-              <div className="px-4 py-2.5 border-b text-sm font-medium">
-                Rows with errors
-              </div>
-              <div className="max-h-64 overflow-auto divide-y">
-                {result.errors.map((e, i) => (
-                  <div
-                    key={i}
-                    className="px-4 py-2.5 text-sm flex items-start gap-3"
-                  >
-                    <Badge variant="outline" className="font-mono shrink-0">
-                      Row {e.row}
-                    </Badge>
-                    <span className="text-muted-foreground">{e.reason}</span>
-                  </div>
-                ))}
-              </div>
+          {result.cancelled && (
+            <div className="rounded-lg border border-amber-500/30 bg-amber-500/5 px-4 py-3 text-sm text-amber-700 dark:text-amber-400">
+              You cancelled the generation. The ZIP contains the{" "}
+              {result.success} contract{result.success === 1 ? "" : "s"} created
+              before stopping.
             </div>
+          )}
+
+          {hasErrors && (
+            <IssueList
+              title="Rows that failed (not in the ZIP)"
+              items={result.errors}
+              tone="error"
+            />
+          )}
+
+          {hasWarnings && (
+            <IssueList
+              title="Rows generated with warnings (included in the ZIP)"
+              items={result.warnings}
+              tone="warning"
+            />
           )}
 
           <div className="flex justify-end gap-2 pt-2">
@@ -1164,6 +1230,17 @@ function StepGenerate({
         )}
 
         <div className="flex items-center justify-end gap-3 pt-2">
+          {busy && (
+            <Button
+              variant="outline"
+              size="lg"
+              onClick={() => {
+                cancelRef.current = true;
+              }}
+            >
+              Cancel
+            </Button>
+          )}
           <Button
             onClick={handleGenerate}
             disabled={!canGenerate || !templateBuffer || busy}
@@ -1190,18 +1267,53 @@ function SummaryStat({
 }: {
   label: string;
   value: number;
-  tone?: "success" | "error";
+  tone?: "success" | "warning" | "error";
 }) {
   return (
     <div
       className={cn(
         "rounded-lg border p-4 text-center",
         tone === "success" && "border-primary/30 bg-primary/5",
-        tone === "error" && "border-amber-500/30 bg-amber-500/5",
+        tone === "warning" && "border-amber-500/30 bg-amber-500/5",
+        tone === "error" && "border-destructive/30 bg-destructive/5",
       )}
     >
       <div className="text-2xl font-semibold tabular-nums">{value}</div>
       <div className="text-xs text-muted-foreground mt-1">{label}</div>
+    </div>
+  );
+}
+
+function IssueList({
+  title,
+  items,
+  tone,
+}: {
+  title: string;
+  items: Array<{ row: number; reason: string }>;
+  tone: "warning" | "error";
+}) {
+  return (
+    <div className="rounded-lg border bg-muted/30">
+      <div className="px-4 py-2.5 border-b text-sm font-medium">{title}</div>
+      <div className="max-h-64 overflow-auto divide-y">
+        {items.map((e, i) => (
+          <div key={i} className="px-4 py-2.5 text-sm flex items-start gap-3">
+            <Badge
+              variant="outline"
+              className={cn(
+                "font-mono shrink-0",
+                tone === "error"
+                  ? "border-destructive/40 text-destructive"
+                  : "border-amber-500/40 text-amber-700 dark:text-amber-400",
+              )}
+            >
+              Row {e.row}
+            </Badge>
+            <span className="text-muted-foreground">{e.reason}</span>
+          </div>
+        ))}
+      </div>
     </div>
   );
 }

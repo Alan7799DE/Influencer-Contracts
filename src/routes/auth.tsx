@@ -50,12 +50,21 @@ function AuthPage() {
     setLoading(true);
     try {
       if (mode === "signup") {
-        const { error } = await supabase.auth.signUp({
+        const { data, error } = await supabase.auth.signUp({
           email: parsed.data.email,
           password: parsed.data.password,
           options: { emailRedirectTo: `${window.location.origin}/templates` },
         });
         if (error) throw error;
+        // When email confirmation is enabled, signUp returns no session.
+        // Don't navigate (the auth guard would just bounce back to /auth) —
+        // tell the user to confirm their email instead.
+        if (!data.session) {
+          toast.success("Account created. Check your email to confirm it.");
+          setMode("login");
+          setPassword("");
+          return;
+        }
         toast.success("Account created. Welcome!");
       } else {
         const { error } = await supabase.auth.signInWithPassword({
@@ -86,8 +95,8 @@ function AuthPage() {
             Generate hundreds of contracts in seconds.
           </h1>
           <p className="text-primary-foreground/80 text-lg">
-            Upload your template once, load a CSV with your influencers, and
-            download a ZIP with every contract ready.
+            Upload your template once, load an Excel file with your
+            influencers, and download a ZIP with every contract ready.
           </p>
         </div>
         <p className="text-sm text-primary-foreground/60">
