@@ -70,12 +70,18 @@ function GeneracionesPage() {
   const [rawRows, setRawRows] = useState<string[][] | null>(null);
   const [headerRowIdx, setHeaderRowIdx] = useState<number>(0);
   const [mapping, setMapping] = useState<Record<string, string>>({});
+  const [sources, setSources] = useState<Record<string, "column" | "fixed">>({});
+  const [constants, setConstants] = useState<Record<string, string>>({});
   const [nameColumn, setNameColumn] = useState<string>("");
 
   const allMapped =
     !!template &&
     template.variables.length > 0 &&
-    template.variables.every((v) => !!mapping[v.name]);
+    template.variables.every((v) => {
+      const src = sources[v.name] ?? "column";
+      if (src === "fixed") return (constants[v.name] ?? "").trim() !== "";
+      return !!mapping[v.name];
+    });
   const canGenerate =
     !!template && !!sheet && sheet.rows.length > 0 && allMapped && !!nameColumn;
 
@@ -92,6 +98,8 @@ function GeneracionesPage() {
     setRawRows(null);
     setHeaderRowIdx(0);
     setMapping({});
+    setSources({});
+    setConstants({});
     setNameColumn("");
   }
 
