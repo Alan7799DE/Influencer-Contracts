@@ -772,6 +772,8 @@ function StepGenerate({
   sheet,
   csvFilename,
   mapping,
+  sources,
+  constants,
   nameColumn,
   canGenerate,
   onDone,
@@ -780,6 +782,8 @@ function StepGenerate({
   sheet: ParsedSheet;
   csvFilename: string;
   mapping: Record<string, string>;
+  sources: Record<string, "column" | "fixed">;
+  constants: Record<string, string>;
   nameColumn: string;
   canGenerate: boolean;
   onDone: () => void;
@@ -802,12 +806,15 @@ function StepGenerate({
     const row = sheet.rows[0] ?? {};
     const out: Record<string, string> = {};
     for (const v of template.variables) {
-      const col = mapping[v.name];
-      const raw = col ? row[col] ?? "" : "";
+      const src = sources[v.name] ?? "column";
+      const raw =
+        src === "fixed"
+          ? constants[v.name] ?? ""
+          : (mapping[v.name] ? row[mapping[v.name]] ?? "" : "");
       out[v.name] = formatValue(raw, v.type);
     }
     return out;
-  }, [sheet, template, mapping]);
+  }, [sheet, template, mapping, sources, constants]);
 
   // Download template once
   useEffect(() => {
