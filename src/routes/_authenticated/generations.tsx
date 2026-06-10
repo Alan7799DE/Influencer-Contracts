@@ -357,12 +357,16 @@ function StepTemplate({
               className={cn(
                 "w-full text-left rounded-lg border p-4 transition-all",
                 active
-                  ? "border-primary bg-primary/5 ring-2 ring-primary/30"
+                  ? "border-primary bg-primary/10 ring-2 ring-primary shadow-sm"
                   : "hover:bg-muted/50",
-              )}
-            >
+              )}>
               <div className="flex items-center gap-3">
-                <div className="flex size-10 items-center justify-center rounded-lg bg-accent text-accent-foreground">
+                <div className={cn(
+                  "flex size-10 items-center justify-center rounded-lg",
+                  active
+                    ? "bg-primary text-primary-foreground"
+                    : "bg-accent text-accent-foreground",
+                )}>
                   <FileText className="size-5" />
                 </div>
                 <div className="flex-1 min-w-0">
@@ -378,11 +382,9 @@ function StepTemplate({
                   {t.variables.map((v) => (
                     <Badge
                       key={v.name}
-                      variant="secondary"
-                      className="font-normal"
-                    >
+                      className="font-normal bg-primary/10 text-primary border-primary/20 hover:bg-primary/20">
                       {v.label}
-                      <span className="ml-1 text-muted-foreground">
+                      <span className="ml-1 text-primary/70">
                         · {v.type}
                       </span>
                     </Badge>
