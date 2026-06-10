@@ -145,22 +145,9 @@ function GeneracionesPage() {
         <StepData
           sheet={sheet}
           fileName={fileName}
-          onParsed={(s, name) => {
-            setSheet(s);
-            setFileName(name);
-            // auto-map based on headers + template variables
-            if (template) {
-              setMapping(
-                autoMapColumns(
-                  template.variables.map((v) => v.name),
-                  s.headers,
-                ),
-              );
-              if (!nameColumn || !s.headers.includes(nameColumn)) {
-                setNameColumn(s.headers[0] ?? "");
-              }
-            }
-          }}
+          rawRows={rawRows}
+          headerRowIdx={headerRowIdx}
+          onParsed={applyHeader}
         />
       )}
 
