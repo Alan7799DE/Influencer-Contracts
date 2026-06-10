@@ -22,6 +22,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
 import { Progress } from "@/components/ui/progress";
 import {
   Select,
@@ -70,12 +71,18 @@ function GeneracionesPage() {
   const [rawRows, setRawRows] = useState<string[][] | null>(null);
   const [headerRowIdx, setHeaderRowIdx] = useState<number>(0);
   const [mapping, setMapping] = useState<Record<string, string>>({});
+  const [sources, setSources] = useState<Record<string, "column" | "fixed">>({});
+  const [constants, setConstants] = useState<Record<string, string>>({});
   const [nameColumn, setNameColumn] = useState<string>("");
 
   const allMapped =
     !!template &&
     template.variables.length > 0 &&
-    template.variables.every((v) => !!mapping[v.name]);
+    template.variables.every((v) => {
+      const src = sources[v.name] ?? "column";
+      if (src === "fixed") return (constants[v.name] ?? "").trim() !== "";
+      return !!mapping[v.name];
+    });
   const canGenerate =
     !!template && !!sheet && sheet.rows.length > 0 && allMapped && !!nameColumn;
 
@@ -92,6 +99,8 @@ function GeneracionesPage() {
     setRawRows(null);
     setHeaderRowIdx(0);
     setMapping({});
+    setSources({});
+    setConstants({});
     setNameColumn("");
   }
 
@@ -134,6 +143,8 @@ function GeneracionesPage() {
             if (template?.id !== t.id) {
               // changing template: reset downstream state
               setMapping({});
+              setSources({});
+              setConstants({});
               setNameColumn("");
             }
             setTemplate(t);
@@ -156,7 +167,11 @@ function GeneracionesPage() {
           template={template}
           sheet={sheet}
           mapping={mapping}
-          onChange={setMapping}
+          sources={sources}
+          constants={constants}
+          onMappingChange={setMapping}
+          onSourcesChange={setSources}
+          onConstantsChange={setConstants}
         />
       )}
 
@@ -174,6 +189,8 @@ function GeneracionesPage() {
           sheet={sheet}
           csvFilename={fileName}
           mapping={mapping}
+          sources={sources}
+          constants={constants}
           nameColumn={nameColumn}
           canGenerate={canGenerate}
           onDone={reset}
@@ -563,54 +580,134 @@ function StepMapping({
   template,
   sheet,
   mapping,
-  onChange,
+  sources,
+  constants,
+  onMappingChange,
+  onSourcesChange,
+  onConstantsChange,
 }: {
   template: TemplateRow;
   sheet: ParsedSheet;
   mapping: Record<string, string>;
-  onChange: (m: Record<string, string>) => void;
+  sources: Record<string, "column" | "fixed">;
+  constants: Record<string, string>;
+  onMappingChange: (m: Record<string, string>) => void;
+  onSourcesChange: (m: Record<string, "column" | "fixed">) => void;
+  onConstantsChange: (m: Record<string, string>) => void;
 }) {
   return (
     <Card>
       <CardHeader>
         <CardTitle className="text-base">3. Map the variables</CardTitle>
+        <p className="text-xs text-muted-foreground mt-1">
+          For each variable, pick a column from your file or set a fixed value
+          that will be the same across every contract.
+        </p>
       </CardHeader>
       <CardContent className="space-y-3">
-        {template.variables.map((v) => (
-          <div
-            key={v.name}
-            className="grid grid-cols-1 md:grid-cols-[1fr_1fr] gap-3 items-center rounded-lg border p-3"
-          >
-            <div className="space-y-1">
-              <div className="font-medium text-sm">{v.label}</div>
-              <div className="flex items-center gap-2">
-                <code className="rounded bg-muted px-1.5 py-0.5 text-xs font-mono text-primary">
-                  {`{{${v.name}}}`}
-                </code>
-                <Badge variant="outline" className="font-normal">
-                  {v.type}
-                </Badge>
-              </div>
-            </div>
-            <Select
-              value={mapping[v.name] ?? ""}
-              onValueChange={(val) =>
-                onChange({ ...mapping, [v.name]: val })
-              }
+        {template.variables.map((v) => {
+          const source = sources[v.name] ?? "column";
+          const inputType =
+            v.type === "fecha" ? "date" : v.type === "moneda" ? "number" : "text";
+          return (
+            <div
+              key={v.name}
+              className="rounded-lg border p-3 space-y-3"
             >
-              <SelectTrigger>
-                <SelectValue placeholder="Pick a column" />
-              </SelectTrigger>
-              <SelectContent>
-                {sheet.headers.map((h) => (
-                  <SelectItem key={h} value={h}>
-                    {h}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-        ))}
+              <div className="flex items-start justify-between gap-3">
+                <div className="space-y-1">
+                  <div className="font-medium text-sm">{v.label}</div>
+                  <div className="flex items-center gap-2">
+                    <code className="rounded bg-muted px-1.5 py-0.5 text-xs font-mono text-primary">
+                      {`{{${v.name}}}`}
+                    </code>
+                    <Badge variant="outline" className="font-normal">
+                      {v.type}
+                    </Badge>
+                  </div>
+                </div>
+                <div className="inline-flex rounded-md border bg-muted/40 p-0.5 text-xs">
+                  <button
+                    type="button"
+                    onClick={() =>
+                      onSourcesChange({ ...sources, [v.name]: "column" })
+                    }
+                    className={cn(
+                      "px-2.5 py-1 rounded transition-colors",
+                      source === "column"
+                        ? "bg-background shadow-sm font-medium"
+                        : "text-muted-foreground hover:text-foreground",
+                    )}
+                  >
+                    From column
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() =>
+                      onSourcesChange({ ...sources, [v.name]: "fixed" })
+                    }
+                    className={cn(
+                      "px-2.5 py-1 rounded transition-colors",
+                      source === "fixed"
+                        ? "bg-background shadow-sm font-medium"
+                        : "text-muted-foreground hover:text-foreground",
+                    )}
+                  >
+                    Fixed value
+                  </button>
+                </div>
+              </div>
+
+              {source === "column" ? (
+                <Select
+                  value={mapping[v.name] ?? ""}
+                  onValueChange={(val) =>
+                    onMappingChange({ ...mapping, [v.name]: val })
+                  }
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Pick a column" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {sheet.headers.map((h) => (
+                      <SelectItem key={h} value={h}>
+                        {h}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              ) : (
+                <div className="space-y-1.5">
+                  <Input
+                    type={inputType}
+                    value={constants[v.name] ?? ""}
+                    onChange={(e) =>
+                      onConstantsChange({
+                        ...constants,
+                        [v.name]: e.target.value,
+                      })
+                    }
+                    placeholder={
+                      v.type === "moneda"
+                        ? "e.g. 5000"
+                        : v.type === "fecha"
+                          ? ""
+                          : `e.g. ${v.label}`
+                    }
+                  />
+                  {(constants[v.name] ?? "").trim() !== "" && (
+                    <div className="text-xs text-muted-foreground">
+                      Preview:{" "}
+                      <span className="font-mono text-foreground">
+                        {formatValue(constants[v.name] ?? "", v.type)}
+                      </span>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          );
+        })}
       </CardContent>
     </Card>
   );
@@ -675,6 +772,8 @@ function StepGenerate({
   sheet,
   csvFilename,
   mapping,
+  sources,
+  constants,
   nameColumn,
   canGenerate,
   onDone,
@@ -683,6 +782,8 @@ function StepGenerate({
   sheet: ParsedSheet;
   csvFilename: string;
   mapping: Record<string, string>;
+  sources: Record<string, "column" | "fixed">;
+  constants: Record<string, string>;
   nameColumn: string;
   canGenerate: boolean;
   onDone: () => void;
@@ -705,12 +806,15 @@ function StepGenerate({
     const row = sheet.rows[0] ?? {};
     const out: Record<string, string> = {};
     for (const v of template.variables) {
-      const col = mapping[v.name];
-      const raw = col ? row[col] ?? "" : "";
+      const src = sources[v.name] ?? "column";
+      const raw =
+        src === "fixed"
+          ? constants[v.name] ?? ""
+          : (mapping[v.name] ? row[mapping[v.name]] ?? "" : "");
       out[v.name] = formatValue(raw, v.type);
     }
     return out;
-  }, [sheet, template, mapping]);
+  }, [sheet, template, mapping, sources, constants]);
 
   // Download template once
   useEffect(() => {
@@ -801,12 +905,15 @@ function StepGenerate({
         const row = sheet.rows[i];
         const rowNumber = i + 2; // header is row 1, first data row = 2
 
-        // Validate: every mapped variable must have a non-empty value
+        // Validate: every variable must have a non-empty value
         const missing: string[] = [];
         const data: Record<string, string> = {};
         for (const v of template.variables) {
-          const col = mapping[v.name];
-          const raw = col ? (row[col] ?? "").trim() : "";
+          const src = sources[v.name] ?? "column";
+          const raw =
+            src === "fixed"
+              ? (constants[v.name] ?? "").trim()
+              : (mapping[v.name] ? (row[mapping[v.name]] ?? "").trim() : "");
           if (!raw) {
             missing.push(v.label);
           }
@@ -816,7 +923,7 @@ function StepGenerate({
         if (missing.length > 0) {
           errors.push({
             row: rowNumber,
-            reason: `Falta el valor de ${missing.map((m) => `'${m}'`).join(", ")}`,
+            reason: `Missing value for ${missing.map((m) => `'${m}'`).join(", ")}`,
           });
           setProgress({ done: i + 1, total: sheet.rows.length });
           continue;
@@ -827,7 +934,7 @@ function StepGenerate({
         if (!nameRaw) {
           errors.push({
             row: rowNumber,
-            reason: `Falta el valor de la columna de nombre ('${nameColumn}')`,
+            reason: `Missing value for filename column ('${nameColumn}')`,
           });
           setProgress({ done: i + 1, total: sheet.rows.length });
           continue;
