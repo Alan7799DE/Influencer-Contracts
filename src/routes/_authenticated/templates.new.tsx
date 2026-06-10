@@ -89,7 +89,7 @@ function NewTemplatePage() {
         names.map((n) => ({
           name: n,
           label: humanizeVariableName(n),
-          type: "texto" as VariableType,
+          type: "text" as VariableType,
         })),
       );
     } catch (err) {
@@ -327,9 +327,9 @@ function NewTemplatePage() {
                               <SelectValue />
                             </SelectTrigger>
                             <SelectContent>
-                              <SelectItem value="texto">Text</SelectItem>
-                              <SelectItem value="fecha">Date</SelectItem>
-                              <SelectItem value="moneda">Currency</SelectItem>
+                              <SelectItem value="text">Text</SelectItem>
+                              <SelectItem value="date">Date</SelectItem>
+                              <SelectItem value="currency">Currency</SelectItem>
                             </SelectContent>
                           </Select>
                         </div>

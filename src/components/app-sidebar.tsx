@@ -19,7 +19,7 @@ import { supabase } from "@/integrations/supabase/client";
 
 const items = [
   { title: "Templates", url: "/templates", icon: Files },
-  { title: "Generations", url: "/generaciones", icon: FolderArchive },
+  { title: "Generations", url: "/generations", icon: FolderArchive },
 ];
 
 export function AppSidebar({ email }: { email: string | null }) {

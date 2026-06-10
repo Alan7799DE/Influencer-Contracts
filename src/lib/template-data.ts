@@ -1,33 +1,11 @@
 // Browser-only utilities for the bulk generation wizard.
-import Papa from "papaparse";
 import * as XLSX from "xlsx";
-import type { VariableType } from "@/lib/docx-parser";
+import { normalizeVariableType, type VariableType } from "@/lib/docx-parser";
 
 export type ParsedSheet = {
   headers: string[];
   rows: Array<Record<string, string>>;
 };
-
-export async function parseCSV(file: File): Promise<ParsedSheet> {
-  const text = await file.text();
-  const result = Papa.parse<Record<string, string>>(text, {
-    header: true,
-    skipEmptyLines: true,
-    transformHeader: (h) => h.trim(),
-  });
-  if (result.errors.length > 0 && result.data.length === 0) {
-    throw new Error(result.errors[0]?.message ?? "Could not read the CSV");
-  }
-  const headers = result.meta.fields?.map((f) => f.trim()) ?? [];
-  const rows = result.data
-    .filter((r) => Object.values(r).some((v) => String(v ?? "").trim() !== ""))
-    .map((r) => {
-      const norm: Record<string, string> = {};
-      for (const h of headers) norm[h] = String(r[h] ?? "").trim();
-      return norm;
-    });
-  return { headers, rows };
-}
 
 export async function parseXLSXRaw(file: File): Promise<string[][]> {
   const buf = await file.arrayBuffer();
@@ -78,11 +56,6 @@ export function buildSheetFromRaw(
   return { headers, rows };
 }
 
-export async function parseXLSX(file: File): Promise<ParsedSheet> {
-  const raw = await parseXLSXRaw(file);
-  return buildSheetFromRaw(raw, 0);
-}
-
 function stringifyCell(v: unknown): string {
   if (v == null) return "";
   if (v instanceof Date) return v.toISOString();
@@ -123,8 +96,11 @@ export function autoMapColumns(
 export function formatValue(raw: string, type: VariableType): string {
   const value = (raw ?? "").trim();
   if (!value) return "";
-  if (type === "fecha") return formatDate(value);
-  if (type === "moneda") return formatCurrency(value);
+  // Normalize defensively in case a legacy ("texto"/"fecha"/"moneda") value
+  // reaches this function from older stored templates.
+  const t = normalizeVariableType(type);
+  if (t === "date") return formatDate(value);
+  if (t === "currency") return formatCurrency(value);
   return value;
 }
 
@@ -217,6 +193,40 @@ export async function renderDocx(
     linebreaks: true,
     nullGetter: () => "",
   });
-  doc.render(data);
+  try {
+    doc.render(data);
+  } catch (err) {
+    throw new Error(formatDocxtemplaterError(err));
+  }
   return doc.getZip().generate({ type: "uint8array" });
+}
+
+/**
+ * docxtemplater aggregates template problems (unclosed tags, etc.) into
+ * `error.properties.errors`. The top-level `.message` is just "Multi error",
+ * so dig out the per-tag explanations to show something actionable.
+ */
+export function formatDocxtemplaterError(err: unknown): string {
+  if (err && typeof err === "object" && "properties" in err) {
+    const props = (err as { properties?: { errors?: unknown[] } }).properties;
+    const inner = props?.errors;
+    if (Array.isArray(inner) && inner.length > 0) {
+      const messages = inner
+        .map((e) => {
+          if (e && typeof e === "object") {
+            const ep = (e as { properties?: { explanation?: string } }).properties;
+            if (ep?.explanation) return ep.explanation;
+            const m = (e as { message?: string }).message;
+            if (m) return m;
+          }
+          return String(e);
+        })
+        .filter(Boolean);
+      if (messages.length > 0) {
+        return `Template problem: ${[...new Set(messages)].join("; ")}`;
+      }
+    }
+  }
+  if (err instanceof Error) return err.message;
+  return "Render error";
 }
