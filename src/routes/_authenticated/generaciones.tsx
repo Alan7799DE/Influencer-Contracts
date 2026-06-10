@@ -580,54 +580,134 @@ function StepMapping({
   template,
   sheet,
   mapping,
-  onChange,
+  sources,
+  constants,
+  onMappingChange,
+  onSourcesChange,
+  onConstantsChange,
 }: {
   template: TemplateRow;
   sheet: ParsedSheet;
   mapping: Record<string, string>;
-  onChange: (m: Record<string, string>) => void;
+  sources: Record<string, "column" | "fixed">;
+  constants: Record<string, string>;
+  onMappingChange: (m: Record<string, string>) => void;
+  onSourcesChange: (m: Record<string, "column" | "fixed">) => void;
+  onConstantsChange: (m: Record<string, string>) => void;
 }) {
   return (
     <Card>
       <CardHeader>
         <CardTitle className="text-base">3. Map the variables</CardTitle>
+        <p className="text-xs text-muted-foreground mt-1">
+          For each variable, pick a column from your file or set a fixed value
+          that will be the same across every contract.
+        </p>
       </CardHeader>
       <CardContent className="space-y-3">
-        {template.variables.map((v) => (
-          <div
-            key={v.name}
-            className="grid grid-cols-1 md:grid-cols-[1fr_1fr] gap-3 items-center rounded-lg border p-3"
-          >
-            <div className="space-y-1">
-              <div className="font-medium text-sm">{v.label}</div>
-              <div className="flex items-center gap-2">
-                <code className="rounded bg-muted px-1.5 py-0.5 text-xs font-mono text-primary">
-                  {`{{${v.name}}}`}
-                </code>
-                <Badge variant="outline" className="font-normal">
-                  {v.type}
-                </Badge>
-              </div>
-            </div>
-            <Select
-              value={mapping[v.name] ?? ""}
-              onValueChange={(val) =>
-                onChange({ ...mapping, [v.name]: val })
-              }
+        {template.variables.map((v) => {
+          const source = sources[v.name] ?? "column";
+          const inputType =
+            v.type === "fecha" ? "date" : v.type === "moneda" ? "number" : "text";
+          return (
+            <div
+              key={v.name}
+              className="rounded-lg border p-3 space-y-3"
             >
-              <SelectTrigger>
-                <SelectValue placeholder="Pick a column" />
-              </SelectTrigger>
-              <SelectContent>
-                {sheet.headers.map((h) => (
-                  <SelectItem key={h} value={h}>
-                    {h}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-        ))}
+              <div className="flex items-start justify-between gap-3">
+                <div className="space-y-1">
+                  <div className="font-medium text-sm">{v.label}</div>
+                  <div className="flex items-center gap-2">
+                    <code className="rounded bg-muted px-1.5 py-0.5 text-xs font-mono text-primary">
+                      {`{{${v.name}}}`}
+                    </code>
+                    <Badge variant="outline" className="font-normal">
+                      {v.type}
+                    </Badge>
+                  </div>
+                </div>
+                <div className="inline-flex rounded-md border bg-muted/40 p-0.5 text-xs">
+                  <button
+                    type="button"
+                    onClick={() =>
+                      onSourcesChange({ ...sources, [v.name]: "column" })
+                    }
+                    className={cn(
+                      "px-2.5 py-1 rounded transition-colors",
+                      source === "column"
+                        ? "bg-background shadow-sm font-medium"
+                        : "text-muted-foreground hover:text-foreground",
+                    )}
+                  >
+                    From column
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() =>
+                      onSourcesChange({ ...sources, [v.name]: "fixed" })
+                    }
+                    className={cn(
+                      "px-2.5 py-1 rounded transition-colors",
+                      source === "fixed"
+                        ? "bg-background shadow-sm font-medium"
+                        : "text-muted-foreground hover:text-foreground",
+                    )}
+                  >
+                    Fixed value
+                  </button>
+                </div>
+              </div>
+
+              {source === "column" ? (
+                <Select
+                  value={mapping[v.name] ?? ""}
+                  onValueChange={(val) =>
+                    onMappingChange({ ...mapping, [v.name]: val })
+                  }
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Pick a column" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {sheet.headers.map((h) => (
+                      <SelectItem key={h} value={h}>
+                        {h}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              ) : (
+                <div className="space-y-1.5">
+                  <Input
+                    type={inputType}
+                    value={constants[v.name] ?? ""}
+                    onChange={(e) =>
+                      onConstantsChange({
+                        ...constants,
+                        [v.name]: e.target.value,
+                      })
+                    }
+                    placeholder={
+                      v.type === "moneda"
+                        ? "e.g. 5000"
+                        : v.type === "fecha"
+                          ? ""
+                          : `e.g. ${v.label}`
+                    }
+                  />
+                  {(constants[v.name] ?? "").trim() !== "" && (
+                    <div className="text-xs text-muted-foreground">
+                      Preview:{" "}
+                      <span className="font-mono text-foreground">
+                        {formatValue(constants[v.name] ?? "", v.type)}
+                      </span>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          );
+        })}
       </CardContent>
     </Card>
   );
