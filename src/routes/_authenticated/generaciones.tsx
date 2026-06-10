@@ -34,9 +34,9 @@ import { cn } from "@/lib/utils";
 import type { VariableType } from "@/lib/docx-parser";
 import {
   autoMapColumns,
+  buildSheetFromRaw,
   formatValue,
-  parseCSV,
-  parseXLSX,
+  parseXLSXRaw,
   renderDocx,
   sanitizeFilename,
   type ParsedSheet,
@@ -67,6 +67,8 @@ function GeneracionesPage() {
   const [template, setTemplate] = useState<TemplateRow | null>(null);
   const [sheet, setSheet] = useState<ParsedSheet | null>(null);
   const [fileName, setFileName] = useState<string>("");
+  const [rawRows, setRawRows] = useState<string[][] | null>(null);
+  const [headerRowIdx, setHeaderRowIdx] = useState<number>(0);
   const [mapping, setMapping] = useState<Record<string, string>>({});
   const [nameColumn, setNameColumn] = useState<string>("");
 
@@ -87,8 +89,29 @@ function GeneracionesPage() {
     setTemplate(null);
     setSheet(null);
     setFileName("");
+    setRawRows(null);
+    setHeaderRowIdx(0);
     setMapping({});
     setNameColumn("");
+  }
+
+  function applyHeader(raw: string[][], idx: number, name: string) {
+    const s = buildSheetFromRaw(raw, idx);
+    setSheet(s);
+    setFileName(name);
+    setHeaderRowIdx(idx);
+    setRawRows(raw);
+    if (template) {
+      setMapping(
+        autoMapColumns(
+          template.variables.map((v) => v.name),
+          s.headers,
+        ),
+      );
+      if (!nameColumn || !s.headers.includes(nameColumn)) {
+        setNameColumn(s.headers[0] ?? "");
+      }
+    }
   }
 
   return (
@@ -122,22 +145,9 @@ function GeneracionesPage() {
         <StepData
           sheet={sheet}
           fileName={fileName}
-          onParsed={(s, name) => {
-            setSheet(s);
-            setFileName(name);
-            // auto-map based on headers + template variables
-            if (template) {
-              setMapping(
-                autoMapColumns(
-                  template.variables.map((v) => v.name),
-                  s.headers,
-                ),
-              );
-              if (!nameColumn || !s.headers.includes(nameColumn)) {
-                setNameColumn(s.headers[0] ?? "");
-              }
-            }
-          }}
+          rawRows={rawRows}
+          headerRowIdx={headerRowIdx}
+          onParsed={applyHeader}
         />
       )}
 
@@ -368,11 +378,15 @@ function StepTemplate({
 function StepData({
   sheet,
   fileName,
+  rawRows,
+  headerRowIdx,
   onParsed,
 }: {
   sheet: ParsedSheet | null;
   fileName: string;
-  onParsed: (sheet: ParsedSheet, fileName: string) => void;
+  rawRows: string[][] | null;
+  headerRowIdx: number;
+  onParsed: (raw: string[][], headerRowIdx: number, fileName: string) => void;
 }) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [busy, setBusy] = useState(false);
@@ -382,15 +396,17 @@ function StepData({
     const lower = file.name.toLowerCase();
     setBusy(true);
     try {
-      let parsed: ParsedSheet;
-      if (lower.endsWith(".csv")) parsed = await parseCSV(file);
-      else if (lower.endsWith(".xlsx") || lower.endsWith(".xls"))
-        parsed = await parseXLSX(file);
-      else throw new Error("Upload a .csv or .xlsx file");
-      if (parsed.headers.length === 0)
-        throw new Error("No columns detected in the first row");
-      onParsed(parsed, file.name);
-      toast.success(`${parsed.rows.length} rows detected`);
+      if (!lower.endsWith(".xlsx") && !lower.endsWith(".xls"))
+        throw new Error("Upload an .xlsx file");
+      const raw = await parseXLSXRaw(file);
+      if (raw.length === 0) throw new Error("The file is empty");
+      // Default header row = first non-empty row
+      const firstNonEmpty = raw.findIndex((r) =>
+        r.some((v) => String(v ?? "").trim() !== ""),
+      );
+      const initialHeader = firstNonEmpty >= 0 ? firstNonEmpty : 0;
+      onParsed(raw, initialHeader, file.name);
+      toast.success(`${raw.length} rows loaded`);
     } catch (err) {
       const msg = err instanceof Error ? err.message : "Error reading the file";
       toast.error(msg);
@@ -398,6 +414,11 @@ function StepData({
       setBusy(false);
     }
   }
+
+  const previewRows = rawRows ? rawRows.slice(0, 15) : [];
+  const maxCols = rawRows
+    ? rawRows.reduce((m, r) => Math.max(m, r.length), 0)
+    : 0;
 
   return (
     <Card>
@@ -408,11 +429,14 @@ function StepData({
         <input
           ref={inputRef}
           type="file"
-          accept=".csv,.xlsx,.xls"
+          accept=".xlsx,.xls"
           className="hidden"
-          onChange={(e) => handle(e.target.files?.[0] ?? null)}
+          onChange={(e) => {
+            handle(e.target.files?.[0] ?? null);
+            if (inputRef.current) inputRef.current.value = "";
+          }}
         />
-        {!sheet ? (
+        {!rawRows ? (
           <button
             type="button"
             onClick={() => inputRef.current?.click()}
@@ -424,9 +448,9 @@ function StepData({
             ) : (
               <Upload className="size-6 text-muted-foreground" />
             )}
-            <span className="font-medium">Upload CSV or Excel</span>
+            <span className="font-medium">Upload Excel file (.xlsx)</span>
             <span className="text-xs text-muted-foreground">
-              The first row must contain the column names
+              You'll choose which row contains the column names
             </span>
           </button>
         ) : (
@@ -436,7 +460,7 @@ function StepData({
               <div className="flex-1 min-w-0">
                 <div className="text-sm font-medium truncate">{fileName}</div>
                 <div className="text-xs text-muted-foreground">
-                  {sheet.rows.length} rows · {sheet.headers.length} columns
+                  {sheet?.rows.length ?? 0} data rows · {sheet?.headers.length ?? 0} columns
                 </div>
               </div>
               <Button
@@ -448,40 +472,71 @@ function StepData({
               </Button>
             </div>
 
+            <div className="text-xs text-muted-foreground">
+              Click the row that contains your column names. Rows above it will be ignored; rows below it become your data.
+            </div>
+
             <div className="rounded-lg border overflow-hidden">
-              <div className="overflow-auto max-h-64">
+              <div className="overflow-auto max-h-80">
                 <table className="w-full text-xs">
                   <thead className="bg-muted/60 sticky top-0">
                     <tr>
-                      {sheet.headers.map((h) => (
+                      <th className="px-2 py-2 text-left font-medium w-12">Row</th>
+                      {Array.from({ length: maxCols }).map((_, c) => (
                         <th
-                          key={h}
+                          key={c}
                           className="px-3 py-2 text-left font-medium whitespace-nowrap"
                         >
-                          {h}
+                          {colLetter(c)}
                         </th>
                       ))}
                     </tr>
                   </thead>
                   <tbody>
-                    {sheet.rows.slice(0, 3).map((row, i) => (
-                      <tr key={i} className="border-t">
-                        {sheet.headers.map((h) => (
-                          <td
-                            key={h}
-                            className="px-3 py-2 whitespace-nowrap text-muted-foreground"
-                          >
-                            {row[h] || "—"}
+                    {previewRows.map((row, i) => {
+                      const isHeader = i === headerRowIdx;
+                      const isData = i > headerRowIdx;
+                      return (
+                        <tr
+                          key={i}
+                          onClick={() => rawRows && onParsed(rawRows, i, fileName)}
+                          className={cn(
+                            "border-t cursor-pointer transition-colors",
+                            isHeader && "bg-primary/10 hover:bg-primary/15",
+                            !isHeader && "hover:bg-muted/60",
+                            !isHeader && !isData && "opacity-50",
+                          )}
+                        >
+                          <td className="px-2 py-2 font-mono text-muted-foreground">
+                            <div className="flex items-center gap-1.5">
+                              {isHeader && (
+                                <Check className="size-3 text-primary" />
+                              )}
+                              {i + 1}
+                            </div>
                           </td>
-                        ))}
-                      </tr>
-                    ))}
+                          {Array.from({ length: maxCols }).map((_, c) => (
+                            <td
+                              key={c}
+                              className={cn(
+                                "px-3 py-2 whitespace-nowrap",
+                                isHeader
+                                  ? "font-medium"
+                                  : "text-muted-foreground",
+                              )}
+                            >
+                              {row[c] || (isHeader ? "" : "—")}
+                            </td>
+                          ))}
+                        </tr>
+                      );
+                    })}
                   </tbody>
                 </table>
               </div>
-              {sheet.rows.length > 3 && (
+              {rawRows.length > previewRows.length && (
                 <div className="border-t px-3 py-2 text-xs text-muted-foreground bg-muted/30">
-                  Showing 3 of {sheet.rows.length} rows
+                  Showing first {previewRows.length} of {rawRows.length} rows
                 </div>
               )}
             </div>
@@ -490,6 +545,16 @@ function StepData({
       </CardContent>
     </Card>
   );
+}
+
+function colLetter(n: number): string {
+  let s = "";
+  let x = n;
+  while (x >= 0) {
+    s = String.fromCharCode((x % 26) + 65) + s;
+    x = Math.floor(x / 26) - 1;
+  }
+  return s;
 }
 
 /* ============================== STEP 3 ============================== */
