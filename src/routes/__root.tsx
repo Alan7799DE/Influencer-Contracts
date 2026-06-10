@@ -87,6 +87,15 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
         content:
           "Generate personalized influencer marketing contracts in bulk from a template and a CSV.",
       },
+      { property: "og:title", content: "Contracts · Bulk generator" },
+      { name: "twitter:title", content: "Contracts · Bulk generator" },
+      { name: "description", content: "Contract Forge automates the creation of personalized influencer marketing contracts." },
+      { property: "og:description", content: "Contract Forge automates the creation of personalized influencer marketing contracts." },
+      { name: "twitter:description", content: "Contract Forge automates the creation of personalized influencer marketing contracts." },
+      { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/9e7b8b9e-971e-45c0-a081-06db1857d965/id-preview-1a6b4593--3b96cc3d-9a31-4021-9aa4-c08a28bc85de.lovable.app-1781054936777.png" },
+      { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/9e7b8b9e-971e-45c0-a081-06db1857d965/id-preview-1a6b4593--3b96cc3d-9a31-4021-9aa4-c08a28bc85de.lovable.app-1781054936777.png" },
+      { name: "twitter:card", content: "summary_large_image" },
+      { property: "og:type", content: "website" },
     ],
     links: [
       { rel: "stylesheet", href: appCss },
