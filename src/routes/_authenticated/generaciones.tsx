@@ -866,24 +866,32 @@ function StepGenerate({
   useEffect(() => {
     if (!previewBlob || !previewRef.current || result) return;
     let cancelled = false;
+    const target = previewRef.current;
     (async () => {
       try {
         const { renderAsync } = await import("docx-preview");
-        if (cancelled || !previewRef.current) return;
-        previewRef.current.innerHTML = "";
-        await renderAsync(previewBlob, previewRef.current, undefined, {
+        if (cancelled) return;
+        target.innerHTML = "";
+        await renderAsync(previewBlob, target, undefined, {
           inWrapper: true,
           breakPages: true,
           experimental: true,
+          ignoreWidth: false,
+          ignoreHeight: false,
         });
       } catch (err) {
-        console.error(err);
+        console.error("docx-preview failed:", err);
+        if (!cancelled) {
+          target.innerHTML =
+            '<div style="padding:24px;color:#b45309;font-size:13px">Could not render the visual preview of the document. The values above show what will be inserted in each variable.</div>';
+        }
       }
     })();
     return () => {
       cancelled = true;
     };
   }, [previewBlob, result]);
+
 
   async function handleGenerate() {
     if (!templateBuffer || !canGenerate) return;
@@ -1087,7 +1095,50 @@ function StepGenerate({
           Preview of the first contract with data from the first row.
         </div>
 
-        <div className="rounded-lg border bg-muted/40 max-h-[60vh] overflow-auto p-4">
+        {/* Values table — shows exactly what each {{variable}} will receive */}
+        <div className="rounded-lg border">
+          <div className="px-3 py-2 text-xs font-medium bg-muted/40 border-b">
+            Values for the first row
+          </div>
+          <div className="divide-y">
+            {template.variables.map((v) => {
+              const src = sources[v.name] ?? "column";
+              const value = firstRowData[v.name] ?? "";
+              const empty = value.trim() === "";
+              return (
+                <div
+                  key={v.name}
+                  className="grid grid-cols-12 gap-2 px-3 py-2 text-sm items-center"
+                >
+                  <div className="col-span-4 flex items-center gap-2 min-w-0">
+                    <code className="text-xs font-mono bg-muted px-1.5 py-0.5 rounded truncate">
+                      {`{{${v.name}}}`}
+                    </code>
+                  </div>
+                  <div className="col-span-3 text-xs text-muted-foreground truncate">
+                    {src === "fixed"
+                      ? "Fixed value"
+                      : mapping[v.name]
+                        ? `Column: ${mapping[v.name]}`
+                        : "— not mapped —"}
+                  </div>
+                  <div
+                    className={cn(
+                      "col-span-5 text-sm truncate",
+                      empty
+                        ? "italic text-amber-600 dark:text-amber-400"
+                        : "font-medium",
+                    )}
+                  >
+                    {empty ? "(empty — will render as blank)" : value}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
+        <div className="rounded-lg border bg-white text-black max-h-[60vh] overflow-auto p-4">
           {!templateBuffer ? (
             <div className="flex items-center gap-2 py-12 justify-center text-sm text-muted-foreground">
               <Loader2 className="size-4 animate-spin" />
