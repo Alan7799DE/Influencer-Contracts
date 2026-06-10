@@ -5,6 +5,7 @@ import { format } from "date-fns";
 import {
   FileText,
   Plus,
+  Pencil,
   Trash2,
   Loader2,
   Variable as VariableIcon,
@@ -143,11 +144,16 @@ function TemplatesPage() {
                     </Badge>
                   </div>
                 </div>
-                <Link
-                  to="/templates/new"
-                  // future: edit route. For now hide.
-                  className="hidden"
-                />
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  asChild
+                  aria-label="Edit template"
+                >
+                  <Link to="/templates/$id/edit" params={{ id: t.id }}>
+                    <Pencil className="size-4" />
+                  </Link>
+                </Button>
                 <Button
                   variant="ghost"
                   size="icon"
