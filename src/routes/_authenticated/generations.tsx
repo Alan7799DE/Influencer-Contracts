@@ -498,7 +498,7 @@ function StepData({
               </Button>
             </div>
 
-            <div className="text-xs text-muted-foreground">
+            <div className="text-xs text-muted-foreground font-semibold">
               Click the row that contains your column names. Rows above it will be ignored; rows below it become your data.
             </div>
 
