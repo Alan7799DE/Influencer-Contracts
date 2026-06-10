@@ -1,12 +1,32 @@
 // Client-only utilities to read a .docx file and extract {{variable}} placeholders.
 
-export type VariableType = "texto" | "fecha" | "moneda";
+export type VariableType = "text" | "date" | "currency";
 
 export type DetectedVariable = {
   name: string;
   label: string;
   type: VariableType;
 };
+
+/**
+ * Normalize a variable type read from the database. Older templates were
+ * saved with Spanish values ("texto"/"fecha"/"moneda"); map them to the
+ * current English values so legacy data keeps working.
+ */
+export function normalizeVariableType(value: unknown): VariableType {
+  switch (value) {
+    case "date":
+    case "fecha":
+      return "date";
+    case "currency":
+    case "moneda":
+      return "currency";
+    case "text":
+    case "texto":
+    default:
+      return "text";
+  }
+}
 
 const PLACEHOLDER_RE = /\{\{\s*([a-zA-Z_][a-zA-Z0-9_]*)\s*\}\}/g;
 

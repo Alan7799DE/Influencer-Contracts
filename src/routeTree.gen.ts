@@ -12,9 +12,10 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as IndexRouteImport } from './routes/index'
-import { Route as AuthenticatedGeneracionesRouteImport } from './routes/_authenticated/generaciones'
+import { Route as AuthenticatedGenerationsRouteImport } from './routes/_authenticated/generations'
 import { Route as AuthenticatedTemplatesIndexRouteImport } from './routes/_authenticated/templates.index'
 import { Route as AuthenticatedTemplatesNewRouteImport } from './routes/_authenticated/templates.new'
+import { Route as AuthenticatedTemplatesIdEditRouteImport } from './routes/_authenticated/templates.$id.edit'
 
 const AuthRoute = AuthRouteImport.update({
   id: '/auth',
@@ -30,10 +31,10 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const AuthenticatedGeneracionesRoute =
-  AuthenticatedGeneracionesRouteImport.update({
-    id: '/generaciones',
-    path: '/generaciones',
+const AuthenticatedGenerationsRoute =
+  AuthenticatedGenerationsRouteImport.update({
+    id: '/generations',
+    path: '/generations',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
 const AuthenticatedTemplatesIndexRoute =
@@ -48,43 +49,65 @@ const AuthenticatedTemplatesNewRoute =
     path: '/templates/new',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedTemplatesIdEditRoute =
+  AuthenticatedTemplatesIdEditRouteImport.update({
+    id: '/templates/$id/edit',
+    path: '/templates/$id/edit',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
-  '/generaciones': typeof AuthenticatedGeneracionesRoute
+  '/generations': typeof AuthenticatedGenerationsRoute
   '/templates/new': typeof AuthenticatedTemplatesNewRoute
   '/templates/': typeof AuthenticatedTemplatesIndexRoute
+  '/templates/$id/edit': typeof AuthenticatedTemplatesIdEditRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
-  '/generaciones': typeof AuthenticatedGeneracionesRoute
+  '/generations': typeof AuthenticatedGenerationsRoute
   '/templates/new': typeof AuthenticatedTemplatesNewRoute
   '/templates': typeof AuthenticatedTemplatesIndexRoute
+  '/templates/$id/edit': typeof AuthenticatedTemplatesIdEditRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/auth': typeof AuthRoute
-  '/_authenticated/generaciones': typeof AuthenticatedGeneracionesRoute
+  '/_authenticated/generations': typeof AuthenticatedGenerationsRoute
   '/_authenticated/templates/new': typeof AuthenticatedTemplatesNewRoute
   '/_authenticated/templates/': typeof AuthenticatedTemplatesIndexRoute
+  '/_authenticated/templates/$id/edit': typeof AuthenticatedTemplatesIdEditRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/auth' | '/generaciones' | '/templates/new' | '/templates/'
+  fullPaths:
+    | '/'
+    | '/auth'
+    | '/generations'
+    | '/templates/new'
+    | '/templates/'
+    | '/templates/$id/edit'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/auth' | '/generaciones' | '/templates/new' | '/templates'
+  to:
+    | '/'
+    | '/auth'
+    | '/generations'
+    | '/templates/new'
+    | '/templates'
+    | '/templates/$id/edit'
   id:
     | '__root__'
     | '/'
     | '/_authenticated'
     | '/auth'
-    | '/_authenticated/generaciones'
+    | '/_authenticated/generations'
     | '/_authenticated/templates/new'
     | '/_authenticated/templates/'
+    | '/_authenticated/templates/$id/edit'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -116,11 +139,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/_authenticated/generaciones': {
-      id: '/_authenticated/generaciones'
-      path: '/generaciones'
-      fullPath: '/generaciones'
-      preLoaderRoute: typeof AuthenticatedGeneracionesRouteImport
+    '/_authenticated/generations': {
+      id: '/_authenticated/generations'
+      path: '/generations'
+      fullPath: '/generations'
+      preLoaderRoute: typeof AuthenticatedGenerationsRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/templates/': {
@@ -137,19 +160,28 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedTemplatesNewRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/templates/$id/edit': {
+      id: '/_authenticated/templates/$id/edit'
+      path: '/templates/$id/edit'
+      fullPath: '/templates/$id/edit'
+      preLoaderRoute: typeof AuthenticatedTemplatesIdEditRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
   }
 }
 
 interface AuthenticatedRouteRouteChildren {
-  AuthenticatedGeneracionesRoute: typeof AuthenticatedGeneracionesRoute
+  AuthenticatedGenerationsRoute: typeof AuthenticatedGenerationsRoute
   AuthenticatedTemplatesNewRoute: typeof AuthenticatedTemplatesNewRoute
   AuthenticatedTemplatesIndexRoute: typeof AuthenticatedTemplatesIndexRoute
+  AuthenticatedTemplatesIdEditRoute: typeof AuthenticatedTemplatesIdEditRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
-  AuthenticatedGeneracionesRoute: AuthenticatedGeneracionesRoute,
+  AuthenticatedGenerationsRoute: AuthenticatedGenerationsRoute,
   AuthenticatedTemplatesNewRoute: AuthenticatedTemplatesNewRoute,
   AuthenticatedTemplatesIndexRoute: AuthenticatedTemplatesIndexRoute,
+  AuthenticatedTemplatesIdEditRoute: AuthenticatedTemplatesIdEditRoute,
 }
 
 const AuthenticatedRouteRouteWithChildren =

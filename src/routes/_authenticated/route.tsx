@@ -51,7 +51,8 @@ function AuthenticatedLayout() {
 
 function getTitle(pathname: string) {
   if (pathname.startsWith("/templates/new")) return "New template";
+  if (pathname.includes("/edit")) return "Edit template";
   if (pathname.startsWith("/templates")) return "Templates";
-  if (pathname.startsWith("/generaciones")) return "Generations";
+  if (pathname.startsWith("/generations")) return "Generations";
   return "";
 }
