@@ -67,6 +67,8 @@ function GeneracionesPage() {
   const [template, setTemplate] = useState<TemplateRow | null>(null);
   const [sheet, setSheet] = useState<ParsedSheet | null>(null);
   const [fileName, setFileName] = useState<string>("");
+  const [rawRows, setRawRows] = useState<string[][] | null>(null);
+  const [headerRowIdx, setHeaderRowIdx] = useState<number>(0);
   const [mapping, setMapping] = useState<Record<string, string>>({});
   const [nameColumn, setNameColumn] = useState<string>("");
 
@@ -87,8 +89,29 @@ function GeneracionesPage() {
     setTemplate(null);
     setSheet(null);
     setFileName("");
+    setRawRows(null);
+    setHeaderRowIdx(0);
     setMapping({});
     setNameColumn("");
+  }
+
+  function applyHeader(raw: string[][], idx: number, name: string) {
+    const s = buildSheetFromRaw(raw, idx);
+    setSheet(s);
+    setFileName(name);
+    setHeaderRowIdx(idx);
+    setRawRows(raw);
+    if (template) {
+      setMapping(
+        autoMapColumns(
+          template.variables.map((v) => v.name),
+          s.headers,
+        ),
+      );
+      if (!nameColumn || !s.headers.includes(nameColumn)) {
+        setNameColumn(s.headers[0] ?? "");
+      }
+    }
   }
 
   return (
