@@ -56,10 +56,10 @@ type TemplateRow = {
 
 const STEPS = [
   { id: 1, title: "Template" },
-  { id: 2, title: "Datos" },
-  { id: 3, title: "Mapeo" },
-  { id: 4, title: "Nombre" },
-  { id: 5, title: "Generar" },
+  { id: 2, title: "Data" },
+  { id: 3, title: "Mapping" },
+  { id: 4, title: "Name" },
+  { id: 5, title: "Generate" },
 ] as const;
 
 function GeneracionesPage() {
@@ -95,10 +95,10 @@ function GeneracionesPage() {
     <div className="mx-auto max-w-5xl space-y-6">
       <div>
         <h2 className="text-2xl font-semibold tracking-tight">
-          Generación masiva
+          Bulk generation
         </h2>
         <p className="text-sm text-muted-foreground mt-1">
-          Generá decenas de contratos en minutos desde un template y una planilla.
+          Generate dozens of contracts in minutes from a template and a spreadsheet.
         </p>
       </div>
 
@@ -178,7 +178,7 @@ function GeneracionesPage() {
           disabled={step === 1}
         >
           <ArrowLeft className="size-4" />
-          Atrás
+          Back
         </Button>
         {step < STEPS.length ? (
           <Button
@@ -190,12 +190,12 @@ function GeneracionesPage() {
               nameColumn,
             })}
           >
-            Siguiente
+            Next
             <ArrowRight className="size-4" />
           </Button>
         ) : (
           <Button variant="ghost" onClick={reset}>
-            Empezar de nuevo
+            Start over
           </Button>
         )}
       </div>
@@ -295,12 +295,12 @@ function StepTemplate({
           <div className="flex size-14 items-center justify-center rounded-full bg-accent text-accent-foreground">
             <FileText className="size-7" />
           </div>
-          <h3 className="mt-4 text-lg font-medium">No tenés templates todavía</h3>
+          <h3 className="mt-4 text-lg font-medium">No templates yet</h3>
           <p className="mt-1 max-w-sm text-sm text-muted-foreground">
-            Antes de generar contratos en lote necesitás al menos un template.
+            Before generating contracts in bulk you need at least one template.
           </p>
           <Button asChild className="mt-6">
-            <Link to="/templates/new">Crear template</Link>
+            <Link to="/templates/new">Create template</Link>
           </Button>
         </CardContent>
       </Card>
@@ -310,7 +310,7 @@ function StepTemplate({
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="text-base">1. Elegí un template</CardTitle>
+        <CardTitle className="text-base">1. Pick a template</CardTitle>
       </CardHeader>
       <CardContent className="space-y-3">
         {data.map((t) => {
@@ -386,13 +386,13 @@ function StepData({
       if (lower.endsWith(".csv")) parsed = await parseCSV(file);
       else if (lower.endsWith(".xlsx") || lower.endsWith(".xls"))
         parsed = await parseXLSX(file);
-      else throw new Error("Subí un archivo .csv o .xlsx");
+      else throw new Error("Upload a .csv or .xlsx file");
       if (parsed.headers.length === 0)
-        throw new Error("No se detectaron columnas en la primera fila");
+        throw new Error("No columns detected in the first row");
       onParsed(parsed, file.name);
-      toast.success(`${parsed.rows.length} filas detectadas`);
+      toast.success(`${parsed.rows.length} rows detected`);
     } catch (err) {
-      const msg = err instanceof Error ? err.message : "Error al leer el archivo";
+      const msg = err instanceof Error ? err.message : "Error reading the file";
       toast.error(msg);
     } finally {
       setBusy(false);
@@ -402,7 +402,7 @@ function StepData({
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="text-base">2. Subí los datos</CardTitle>
+        <CardTitle className="text-base">2. Upload your data</CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
         <input
@@ -424,9 +424,9 @@ function StepData({
             ) : (
               <Upload className="size-6 text-muted-foreground" />
             )}
-            <span className="font-medium">Subir CSV o Excel</span>
+            <span className="font-medium">Upload CSV or Excel</span>
             <span className="text-xs text-muted-foreground">
-              La primera fila debe contener los nombres de las columnas
+              The first row must contain the column names
             </span>
           </button>
         ) : (
@@ -436,7 +436,7 @@ function StepData({
               <div className="flex-1 min-w-0">
                 <div className="text-sm font-medium truncate">{fileName}</div>
                 <div className="text-xs text-muted-foreground">
-                  {sheet.rows.length} filas · {sheet.headers.length} columnas
+                  {sheet.rows.length} rows · {sheet.headers.length} columns
                 </div>
               </div>
               <Button
@@ -444,7 +444,7 @@ function StepData({
                 size="sm"
                 onClick={() => inputRef.current?.click()}
               >
-                Cambiar
+                Change
               </Button>
             </div>
 
@@ -481,7 +481,7 @@ function StepData({
               </div>
               {sheet.rows.length > 3 && (
                 <div className="border-t px-3 py-2 text-xs text-muted-foreground bg-muted/30">
-                  Mostrando 3 de {sheet.rows.length} filas
+                  Showing 3 of {sheet.rows.length} rows
                 </div>
               )}
             </div>
@@ -508,7 +508,7 @@ function StepMapping({
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="text-base">3. Mapeá las variables</CardTitle>
+        <CardTitle className="text-base">3. Map the variables</CardTitle>
       </CardHeader>
       <CardContent className="space-y-3">
         {template.variables.map((v) => (
@@ -534,7 +534,7 @@ function StepMapping({
               }
             >
               <SelectTrigger>
-                <SelectValue placeholder="Elegí una columna" />
+                <SelectValue placeholder="Pick a column" />
               </SelectTrigger>
               <SelectContent>
                 {sheet.headers.map((h) => (
@@ -563,19 +563,19 @@ function StepName({
   onChange: (col: string) => void;
 }) {
   const sampleRaw = nameColumn ? sheet.rows[0]?.[nameColumn] ?? "" : "";
-  const sampleFile = `contrato_${sanitizeFilename(sampleRaw)}.docx`;
+  const sampleFile = `contract_${sanitizeFilename(sampleRaw)}.docx`;
 
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="text-base">4. Nombre de los archivos</CardTitle>
+        <CardTitle className="text-base">4. File names</CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="space-y-2">
-          <Label>Columna para nombrar cada contrato</Label>
+          <Label>Column used to name each contract</Label>
           <Select value={nameColumn} onValueChange={onChange}>
             <SelectTrigger>
-              <SelectValue placeholder="Elegí una columna" />
+              <SelectValue placeholder="Pick a column" />
             </SelectTrigger>
             <SelectContent>
               {sheet.headers.map((h) => (
@@ -590,7 +590,7 @@ function StepName({
         {nameColumn && (
           <div className="rounded-lg border bg-muted/30 p-4 space-y-1">
             <div className="text-xs text-muted-foreground">
-              Ejemplo (primera fila)
+              Example (first row)
             </div>
             <div className="flex items-center gap-2">
               <FileText className="size-4 text-primary" />
@@ -661,7 +661,7 @@ function StepGenerate({
       } catch (err) {
         if (!cancelled) {
           const msg =
-            err instanceof Error ? err.message : "No se pudo descargar el template";
+            err instanceof Error ? err.message : "Could not download the template";
           toast.error(msg);
         }
       }
@@ -685,7 +685,7 @@ function StepGenerate({
         setPreviewBlob(blob);
       } catch (err) {
         console.error(err);
-        if (!cancelled) toast.error("No se pudo renderizar el preview");
+        if (!cancelled) toast.error("Could not render the preview");
       }
     })();
     return () => {
@@ -777,7 +777,7 @@ function StepGenerate({
           zip.file(name, bytes);
           successCount++;
         } catch (err) {
-          const msg = err instanceof Error ? err.message : "Error al renderizar";
+          const msg = err instanceof Error ? err.message : "Render error";
           errors.push({ row: rowNumber, reason: msg });
         }
 
@@ -788,11 +788,11 @@ function StepGenerate({
 
       if (successCount > 0) {
         const blob = await zip.generateAsync({ type: "blob" });
-        const zipName = `${sanitizeFilename(template.name)}_${successCount}_contratos.zip`;
+        const zipName = `${sanitizeFilename(template.name)}_${successCount}_contracts.zip`;
         saveAs(blob, zipName);
       }
 
-      const status = errors.length === 0 ? "completado" : "completado_con_errores";
+      const status = errors.length === 0 ? "completed" : "completed_with_errors";
 
       // Save job metadata (best-effort)
       try {
@@ -815,17 +815,17 @@ function StepGenerate({
       setResult({ total: sheet.rows.length, success: successCount, errors });
 
       if (errors.length === 0) {
-        toast.success(`${successCount} contratos generados`);
+        toast.success(`${successCount} contracts generated`);
       } else if (successCount > 0) {
         toast.warning(
-          `${successCount} generados, ${errors.length} con errores`,
+          `${successCount} generated, ${errors.length} with errors`,
         );
       } else {
-        toast.error("Ningún contrato pudo generarse");
+        toast.error("No contracts could be generated");
       }
     } catch (err) {
       console.error(err);
-      const msg = err instanceof Error ? err.message : "Error al generar el ZIP";
+      const msg = err instanceof Error ? err.message : "Error generating the ZIP";
       toast.error(msg);
     } finally {
       setBusy(false);
@@ -845,7 +845,7 @@ function StepGenerate({
               <AlertCircle className="size-5 text-amber-600" />
             )}
             <span>
-              {allOk ? "Generación completada" : "Generación con errores"}
+              {allOk ? "Generation completed" : "Generation finished with errors"}
             </span>
           </CardTitle>
         </CardHeader>
@@ -853,12 +853,12 @@ function StepGenerate({
           <div className="grid grid-cols-3 gap-3">
             <SummaryStat label="Total" value={result.total} />
             <SummaryStat
-              label="Generados"
+              label="Generated"
               value={result.success}
               tone="success"
             />
             <SummaryStat
-              label="Con error"
+              label="With errors"
               value={result.errors.length}
               tone={result.errors.length > 0 ? "error" : undefined}
             />
@@ -867,7 +867,7 @@ function StepGenerate({
           {result.errors.length > 0 && (
             <div className="rounded-lg border bg-muted/30">
               <div className="px-4 py-2.5 border-b text-sm font-medium">
-                Filas con error
+                Rows with errors
               </div>
               <div className="max-h-64 overflow-auto divide-y">
                 {result.errors.map((e, i) => (
@@ -876,7 +876,7 @@ function StepGenerate({
                     className="px-4 py-2.5 text-sm flex items-start gap-3"
                   >
                     <Badge variant="outline" className="font-mono shrink-0">
-                      Fila {e.row}
+                      Row {e.row}
                     </Badge>
                     <span className="text-muted-foreground">{e.reason}</span>
                   </div>
@@ -887,7 +887,7 @@ function StepGenerate({
 
           <div className="flex justify-end gap-2 pt-2">
             <Button variant="outline" onClick={onDone}>
-              Nueva generación
+              New generation
             </Button>
           </div>
         </CardContent>
@@ -904,22 +904,22 @@ function StepGenerate({
     <Card>
       <CardHeader>
         <CardTitle className="text-base flex items-center justify-between">
-          <span>5. Preview y generación</span>
+          <span>5. Preview and generation</span>
           <Badge variant="secondary" className="font-normal">
-            {sheet.rows.length} contratos
+            {sheet.rows.length} contracts
           </Badge>
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="text-xs text-muted-foreground">
-          Vista previa del primer contrato con los datos de la primera fila.
+          Preview of the first contract with data from the first row.
         </div>
 
         <div className="rounded-lg border bg-muted/40 max-h-[60vh] overflow-auto p-4">
           {!templateBuffer ? (
             <div className="flex items-center gap-2 py-12 justify-center text-sm text-muted-foreground">
               <Loader2 className="size-4 animate-spin" />
-              Cargando template…
+              Loading template…
             </div>
           ) : (
             <div ref={previewRef} />
@@ -930,7 +930,7 @@ function StepGenerate({
           <div className="space-y-2">
             <div className="flex items-center justify-between text-sm">
               <span className="text-muted-foreground">
-                Generando contratos…
+                Generating contracts…
               </span>
               <span className="font-medium">
                 {progress.done} / {progress.total}
@@ -951,7 +951,7 @@ function StepGenerate({
             ) : (
               <Download className="size-4" />
             )}
-            Generar contratos
+            Generate contracts
             <Wand2 className="size-4" />
           </Button>
         </div>

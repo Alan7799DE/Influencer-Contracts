@@ -14,10 +14,10 @@ export const Route = createFileRoute("/auth")({
   ssr: false,
   head: () => ({
     meta: [
-      { title: "Iniciar sesión · Generador de contratos" },
+      { title: "Sign in · Contract generator" },
       {
         name: "description",
-        content: "Accedé a tu cuenta para generar contratos personalizados.",
+        content: "Sign in to your account to generate personalized contracts.",
       },
     ],
   }),
@@ -29,8 +29,8 @@ export const Route = createFileRoute("/auth")({
 });
 
 const credentialsSchema = z.object({
-  email: z.string().trim().email("Email inválido").max(255),
-  password: z.string().min(6, "Mínimo 6 caracteres").max(72),
+  email: z.string().trim().email("Invalid email").max(255),
+  password: z.string().min(6, "Minimum 6 characters").max(72),
 });
 
 function AuthPage() {
@@ -44,7 +44,7 @@ function AuthPage() {
     e.preventDefault();
     const parsed = credentialsSchema.safeParse({ email, password });
     if (!parsed.success) {
-      toast.error(parsed.error.issues[0]?.message ?? "Datos inválidos");
+      toast.error(parsed.error.issues[0]?.message ?? "Invalid data");
       return;
     }
     setLoading(true);
@@ -56,18 +56,18 @@ function AuthPage() {
           options: { emailRedirectTo: `${window.location.origin}/templates` },
         });
         if (error) throw error;
-        toast.success("Cuenta creada. ¡Bienvenido!");
+        toast.success("Account created. Welcome!");
       } else {
         const { error } = await supabase.auth.signInWithPassword({
           email: parsed.data.email,
           password: parsed.data.password,
         });
         if (error) throw error;
-        toast.success("Sesión iniciada");
+        toast.success("Signed in");
       }
       navigate({ to: "/templates" });
     } catch (err) {
-      const msg = err instanceof Error ? err.message : "Error al autenticar";
+      const msg = err instanceof Error ? err.message : "Authentication error";
       toast.error(translateAuthError(msg));
     } finally {
       setLoading(false);
@@ -79,19 +79,19 @@ function AuthPage() {
       <section className="hidden lg:flex flex-col justify-between p-12 bg-gradient-to-br from-primary to-primary/70 text-primary-foreground">
         <div className="flex items-center gap-2 font-semibold text-lg">
           <FileText className="size-6" />
-          Contratos
+          Contracts
         </div>
         <div className="space-y-4 max-w-md">
           <h1 className="text-4xl font-bold leading-tight">
-            Generá cientos de contratos en segundos.
+            Generate hundreds of contracts in seconds.
           </h1>
           <p className="text-primary-foreground/80 text-lg">
-            Subí tu template una sola vez, cargá un CSV con tus influencers y
-            descargá un ZIP con todos los contratos listos.
+            Upload your template once, load a CSV with your influencers, and
+            download a ZIP with every contract ready.
           </p>
         </div>
         <p className="text-sm text-primary-foreground/60">
-          © {new Date().getFullYear()} · Generador de contratos
+          © {new Date().getFullYear()} · Contract generator
         </p>
       </section>
 
@@ -99,16 +99,16 @@ function AuthPage() {
         <div className="w-full max-w-sm space-y-8">
           <div className="lg:hidden flex items-center gap-2 font-semibold text-lg">
             <FileText className="size-6 text-primary" />
-            Contratos
+            Contracts
           </div>
           <div className="space-y-2">
             <h2 className="text-2xl font-semibold tracking-tight">
-              {mode === "login" ? "Iniciar sesión" : "Crear cuenta"}
+              {mode === "login" ? "Sign in" : "Create account"}
             </h2>
             <p className="text-sm text-muted-foreground">
               {mode === "login"
-                ? "Ingresá con tu email y contraseña."
-                : "Solo necesitás un email para empezar."}
+                ? "Enter your email and password."
+                : "All you need is an email to get started."}
             </p>
           </div>
 
@@ -117,8 +117,8 @@ function AuthPage() {
             onValueChange={(v) => setMode(v as "login" | "signup")}
           >
             <TabsList className="grid w-full grid-cols-2">
-              <TabsTrigger value="login">Iniciar sesión</TabsTrigger>
-              <TabsTrigger value="signup">Registrarme</TabsTrigger>
+              <TabsTrigger value="login">Sign in</TabsTrigger>
+              <TabsTrigger value="signup">Sign up</TabsTrigger>
             </TabsList>
             <TabsContent value={mode} className="mt-6">
               <form onSubmit={handleSubmit} className="space-y-4">
@@ -132,11 +132,11 @@ function AuthPage() {
                     onChange={(e) => setEmail(e.target.value)}
                     required
                     disabled={loading}
-                    placeholder="tu@empresa.com"
+                    placeholder="you@company.com"
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="password">Contraseña</Label>
+                  <Label htmlFor="password">Password</Label>
                   <Input
                     id="password"
                     type="password"
@@ -153,7 +153,7 @@ function AuthPage() {
                 </div>
                 <Button type="submit" className="w-full" disabled={loading}>
                   {loading && <Loader2 className="size-4 animate-spin" />}
-                  {mode === "login" ? "Entrar" : "Crear cuenta"}
+                  {mode === "login" ? "Sign in" : "Create account"}
                 </Button>
               </form>
             </TabsContent>
@@ -165,10 +165,10 @@ function AuthPage() {
 }
 
 function translateAuthError(msg: string): string {
-  if (/invalid login credentials/i.test(msg)) return "Email o contraseña incorrectos";
-  if (/user already registered/i.test(msg)) return "Ya existe una cuenta con ese email";
-  if (/email.*confirm/i.test(msg)) return "Necesitás confirmar tu email";
+  if (/invalid login credentials/i.test(msg)) return "Incorrect email or password";
+  if (/user already registered/i.test(msg)) return "An account with that email already exists";
+  if (/email.*confirm/i.test(msg)) return "You need to confirm your email";
   if (/password/i.test(msg) && /weak|short/i.test(msg))
-    return "La contraseña es demasiado débil";
+    return "Password is too weak";
   return msg;
 }

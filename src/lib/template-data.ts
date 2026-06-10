@@ -16,7 +16,7 @@ export async function parseCSV(file: File): Promise<ParsedSheet> {
     transformHeader: (h) => h.trim(),
   });
   if (result.errors.length > 0 && result.data.length === 0) {
-    throw new Error(result.errors[0]?.message ?? "No se pudo leer el CSV");
+    throw new Error(result.errors[0]?.message ?? "Could not read the CSV");
   }
   const headers = result.meta.fields?.map((f) => f.trim()) ?? [];
   const rows = result.data
@@ -33,7 +33,7 @@ export async function parseXLSX(file: File): Promise<ParsedSheet> {
   const buf = await file.arrayBuffer();
   const wb = XLSX.read(buf, { type: "array", cellDates: false });
   const sheetName = wb.SheetNames[0];
-  if (!sheetName) throw new Error("El Excel no tiene hojas");
+  if (!sheetName) throw new Error("The Excel file has no sheets");
   const sheet = wb.Sheets[sheetName];
   const raw = XLSX.utils.sheet_to_json<Record<string, unknown>>(sheet, {
     header: 1,
@@ -162,7 +162,7 @@ function formatCurrency(input: string): string {
 
 export function sanitizeFilename(raw: string): string {
   const base = (raw ?? "").toString().trim();
-  if (!base) return "contrato";
+  if (!base) return "contract";
   const cleaned = base
     .normalize("NFD")
     .replace(/[\u0300-\u036f]/g, "")
@@ -170,7 +170,7 @@ export function sanitizeFilename(raw: string): string {
     .trim()
     .replace(/\s+/g, "_")
     .toLowerCase();
-  return cleaned || "contrato";
+  return cleaned || "contract";
 }
 
 /** Render a single .docx using docxtemplater with {{var}} delimiters. */

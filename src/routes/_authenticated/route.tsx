@@ -50,8 +50,8 @@ function AuthenticatedLayout() {
 }
 
 function getTitle(pathname: string) {
-  if (pathname.startsWith("/templates/new")) return "Nuevo template";
+  if (pathname.startsWith("/templates/new")) return "New template";
   if (pathname.startsWith("/templates")) return "Templates";
-  if (pathname.startsWith("/generaciones")) return "Generaciones";
+  if (pathname.startsWith("/generaciones")) return "Generations";
   return "";
 }

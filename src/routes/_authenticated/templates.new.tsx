@@ -60,7 +60,7 @@ function NewTemplatePage() {
         console.error(err);
         if (previewRef.current) {
           previewRef.current.innerHTML =
-            '<p class="text-sm text-destructive p-4">No se pudo previsualizar este archivo.</p>';
+            '<p class="text-sm text-destructive p-4">Could not preview this file.</p>';
         }
       }
     })();
@@ -72,7 +72,7 @@ function NewTemplatePage() {
   async function handleFile(selected: File | null) {
     if (!selected) return;
     if (!selected.name.toLowerCase().endsWith(".docx")) {
-      toast.error("El archivo debe ser un .docx");
+      toast.error("File must be a .docx");
       return;
     }
     setParsing(true);
@@ -82,7 +82,7 @@ function NewTemplatePage() {
       const names = await extractVariablesFromDocx(selected);
       if (names.length === 0) {
         toast.warning(
-          "No se detectaron variables. Asegurate de usar {{nombre_variable}} en el documento.",
+          "No variables detected. Make sure to use {{variable_name}} in the document.",
         );
       }
       setVariables(
@@ -94,7 +94,7 @@ function NewTemplatePage() {
       );
     } catch (err) {
       console.error(err);
-      toast.error("No se pudo leer el .docx");
+      toast.error("Could not read the .docx");
       setFile(null);
     } finally {
       setParsing(false);
@@ -107,19 +107,19 @@ function NewTemplatePage() {
 
   async function handleSave() {
     if (!name.trim()) {
-      toast.error("Ponele un nombre al template");
+      toast.error("Give the template a name");
       return;
     }
     if (!file) {
-      toast.error("Subí un archivo .docx");
+      toast.error("Upload a .docx file");
       return;
     }
     if (variables.length === 0) {
-      toast.error("El template no tiene variables");
+      toast.error("The template has no variables");
       return;
     }
     if (variables.some((v) => !v.label.trim())) {
-      toast.error("Todas las variables necesitan un label");
+      toast.error("All variables need a label");
       return;
     }
 
@@ -150,10 +150,10 @@ function NewTemplatePage() {
         throw insertError;
       }
 
-      toast.success("Template guardado");
+      toast.success("Template saved");
       navigate({ to: "/templates" });
     } catch (err) {
-      const msg = err instanceof Error ? err.message : "Error al guardar";
+      const msg = err instanceof Error ? err.message : "Save error";
       toast.error(msg);
     } finally {
       setSaving(false);
@@ -170,14 +170,14 @@ function NewTemplatePage() {
         </Button>
         <div>
           <h2 className="text-2xl font-semibold tracking-tight">
-            Nuevo template
+            New template
           </h2>
           <p className="text-sm text-muted-foreground">
-            Subí un .docx con placeholders{" "}
+            Upload a .docx with{" "}
             <code className="rounded bg-muted px-1 py-0.5 text-xs">
               {"{{variable}}"}
             </code>{" "}
-            y definí cada variable.
+            placeholders and define each variable.
           </p>
         </div>
       </div>
@@ -185,14 +185,14 @@ function NewTemplatePage() {
       <div className="grid gap-6 lg:grid-cols-[1fr_420px]">
         <Card className="overflow-hidden lg:order-1 order-2">
           <CardHeader>
-            <CardTitle className="text-base">Vista previa</CardTitle>
+            <CardTitle className="text-base">Preview</CardTitle>
           </CardHeader>
           <CardContent className="p-0">
             <div className="bg-muted/40 border-t max-h-[calc(100vh-260px)] overflow-auto p-4">
               {!file ? (
                 <div className="flex flex-col items-center justify-center gap-2 py-24 text-center text-sm text-muted-foreground">
                   <FileText className="size-8 opacity-40" />
-                  La vista previa aparece acá una vez que subas el archivo.
+                  The preview will appear here once you upload the file.
                 </div>
               ) : (
                 <div ref={previewRef} />
@@ -204,21 +204,21 @@ function NewTemplatePage() {
         <div className="space-y-6 lg:order-2 order-1">
           <Card>
             <CardHeader>
-              <CardTitle className="text-base">1. Información</CardTitle>
+              <CardTitle className="text-base">1. Information</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="name">Nombre del template</Label>
+                <Label htmlFor="name">Template name</Label>
                 <Input
                   id="name"
-                  placeholder="Ej: Contrato influencer estándar"
+                  placeholder="E.g. Standard influencer contract"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   maxLength={120}
                 />
               </div>
               <div className="space-y-2">
-                <Label>Archivo .docx</Label>
+                <Label>.docx file</Label>
                 <input
                   ref={fileInputRef}
                   type="file"
@@ -233,9 +233,9 @@ function NewTemplatePage() {
                     className="flex w-full flex-col items-center justify-center gap-2 rounded-lg border-2 border-dashed border-input bg-muted/30 px-4 py-8 text-sm transition-colors hover:bg-muted/60"
                   >
                     <Upload className="size-6 text-muted-foreground" />
-                    <span className="font-medium">Subir .docx</span>
+                    <span className="font-medium">Upload .docx</span>
                     <span className="text-xs text-muted-foreground">
-                      Exportado de Word o Google Docs
+                      Exported from Word or Google Docs
                     </span>
                   </button>
                 ) : (
@@ -255,7 +255,7 @@ function NewTemplatePage() {
                       size="sm"
                       onClick={() => fileInputRef.current?.click()}
                     >
-                      Cambiar
+                      Change
                     </Button>
                   </div>
                 )}
@@ -268,7 +268,7 @@ function NewTemplatePage() {
               <CardTitle className="text-base flex items-center justify-between">
                 <span>2. Variables</span>
                 {variables.length > 0 && (
-                  <Badge variant="secondary">{variables.length} detectadas</Badge>
+                  <Badge variant="secondary">{variables.length} detected</Badge>
                 )}
               </CardTitle>
             </CardHeader>
@@ -276,11 +276,11 @@ function NewTemplatePage() {
               {parsing ? (
                 <div className="flex items-center gap-2 text-sm text-muted-foreground py-4">
                   <Loader2 className="size-4 animate-spin" />
-                  Detectando variables…
+                  Detecting variables…
                 </div>
               ) : variables.length === 0 ? (
                 <p className="text-sm text-muted-foreground py-4">
-                  Subí un .docx para ver las variables detectadas.
+                  Upload a .docx to see the detected variables.
                 </p>
               ) : (
                 <div className="space-y-3">
@@ -313,7 +313,7 @@ function NewTemplatePage() {
                         </div>
                         <div className="space-y-1">
                           <Label className="text-xs text-muted-foreground">
-                            Tipo
+                            Type
                           </Label>
                           <Select
                             value={v.type}
@@ -327,9 +327,9 @@ function NewTemplatePage() {
                               <SelectValue />
                             </SelectTrigger>
                             <SelectContent>
-                              <SelectItem value="texto">Texto</SelectItem>
-                              <SelectItem value="fecha">Fecha</SelectItem>
-                              <SelectItem value="moneda">Moneda</SelectItem>
+                              <SelectItem value="texto">Text</SelectItem>
+                              <SelectItem value="fecha">Date</SelectItem>
+                              <SelectItem value="moneda">Currency</SelectItem>
                             </SelectContent>
                           </Select>
                         </div>
@@ -348,7 +348,7 @@ function NewTemplatePage() {
               onClick={() => navigate({ to: "/templates" })}
               disabled={saving}
             >
-              Cancelar
+              Cancel
             </Button>
             <Button
               className="flex-1"
@@ -360,7 +360,7 @@ function NewTemplatePage() {
               ) : (
                 <Save className="size-4" />
               )}
-              Guardar template
+              Save template
             </Button>
           </div>
         </div>

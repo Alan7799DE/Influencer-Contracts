@@ -2,7 +2,6 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { format } from "date-fns";
-import { es } from "date-fns/locale";
 import {
   FileText,
   Plus,
@@ -65,7 +64,7 @@ function TemplatesPage() {
       await supabase.storage.from("templates").remove([t.storage_path]);
     },
     onSuccess: () => {
-      toast.success("Template eliminado");
+      toast.success("Template deleted");
       queryClient.invalidateQueries({ queryKey: ["templates"] });
       setToDelete(null);
     },
@@ -78,12 +77,12 @@ function TemplatesPage() {
         <div>
           <h2 className="text-2xl font-semibold tracking-tight">Templates</h2>
           <p className="text-sm text-muted-foreground mt-1">
-            Modelos de contrato reutilizables con variables dinámicas.
+            Reusable contract templates with dynamic variables.
           </p>
         </div>
         <Button onClick={() => navigate({ to: "/templates/new" })}>
           <Plus className="size-4" />
-          Nuevo template
+          New template
         </Button>
       </div>
 
@@ -99,20 +98,20 @@ function TemplatesPage() {
             <div className="flex size-14 items-center justify-center rounded-full bg-accent text-accent-foreground">
               <FileText className="size-7" />
             </div>
-            <h3 className="mt-4 text-lg font-medium">Todavía no hay templates</h3>
+            <h3 className="mt-4 text-lg font-medium">No templates yet</h3>
             <p className="mt-1 max-w-sm text-sm text-muted-foreground">
-              Subí tu primer .docx con placeholders{" "}
+              Upload your first .docx with{" "}
               <code className="rounded bg-muted px-1 py-0.5 text-xs">
                 {"{{variable}}"}
               </code>{" "}
-              para empezar.
+              placeholders to get started.
             </p>
             <Button
               className="mt-6"
               onClick={() => navigate({ to: "/templates/new" })}
             >
               <Plus className="size-4" />
-              Crear template
+              Create template
             </Button>
           </CardContent>
         </Card>
@@ -131,10 +130,8 @@ function TemplatesPage() {
                   <div className="font-medium truncate">{t.name}</div>
                   <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground">
                     <span>
-                      Creado el{" "}
-                      {format(new Date(t.created_at), "d 'de' LLLL, yyyy", {
-                        locale: es,
-                      })}
+                      Created on{" "}
+                      {format(new Date(t.created_at), "LLLL d, yyyy")}
                     </span>
                     <Badge variant="secondary" className="font-normal">
                       <VariableIcon className="size-3" />
@@ -152,7 +149,7 @@ function TemplatesPage() {
                   variant="ghost"
                   size="icon"
                   onClick={() => setToDelete(t)}
-                  aria-label="Eliminar template"
+                  aria-label="Delete template"
                 >
                   <Trash2 className="size-4 text-destructive" />
                 </Button>
@@ -165,18 +162,18 @@ function TemplatesPage() {
       <AlertDialog open={!!toDelete} onOpenChange={(o) => !o && setToDelete(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>¿Eliminar template?</AlertDialogTitle>
+            <AlertDialogTitle>Delete template?</AlertDialogTitle>
             <AlertDialogDescription>
-              Esta acción no se puede deshacer. Se borrará el template{" "}
+              This action cannot be undone. The template{" "}
               <span className="font-medium text-foreground">
                 {toDelete?.name}
               </span>{" "}
-              y su archivo asociado.
+              and its associated file will be deleted.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel disabled={deleteMutation.isPending}>
-              Cancelar
+              Cancel
             </AlertDialogCancel>
             <AlertDialogAction
               disabled={deleteMutation.isPending}
@@ -189,7 +186,7 @@ function TemplatesPage() {
               {deleteMutation.isPending && (
                 <Loader2 className="size-4 animate-spin" />
               )}
-              Eliminar
+              Delete
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

@@ -19,7 +19,7 @@ import { supabase } from "@/integrations/supabase/client";
 
 const items = [
   { title: "Templates", url: "/templates", icon: Files },
-  { title: "Generaciones", url: "/generaciones", icon: FolderArchive },
+  { title: "Generations", url: "/generaciones", icon: FolderArchive },
 ];
 
 export function AppSidebar({ email }: { email: string | null }) {
@@ -34,7 +34,7 @@ export function AppSidebar({ email }: { email: string | null }) {
     await queryClient.cancelQueries();
     queryClient.clear();
     await supabase.auth.signOut();
-    toast.success("Sesión cerrada");
+    toast.success("Signed out");
     navigate({ to: "/auth", replace: true });
   }
 
@@ -46,14 +46,14 @@ export function AppSidebar({ email }: { email: string | null }) {
             <FileText className="size-4" />
           </div>
           <div className="flex flex-col leading-tight group-data-[collapsible=icon]:hidden">
-            <span className="text-sm font-semibold">Contratos</span>
-            <span className="text-xs text-muted-foreground">Generador masivo</span>
+            <span className="text-sm font-semibold">Contracts</span>
+            <span className="text-xs text-muted-foreground">Bulk generator</span>
           </div>
         </div>
       </SidebarHeader>
       <SidebarContent>
         <SidebarGroup>
-          <SidebarGroupLabel>Navegación</SidebarGroupLabel>
+          <SidebarGroupLabel>Navigation</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
               {items.map((item) => (
@@ -80,9 +80,9 @@ export function AppSidebar({ email }: { email: string | null }) {
         </div>
         <SidebarMenu>
           <SidebarMenuItem>
-            <SidebarMenuButton onClick={handleSignOut} tooltip="Cerrar sesión">
+            <SidebarMenuButton onClick={handleSignOut} tooltip="Sign out">
               <LogOut />
-              <span>Cerrar sesión</span>
+              <span>Sign out</span>
             </SidebarMenuButton>
           </SidebarMenuItem>
         </SidebarMenu>
