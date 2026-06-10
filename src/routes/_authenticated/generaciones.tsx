@@ -934,7 +934,7 @@ function StepGenerate({
         if (!nameRaw) {
           errors.push({
             row: rowNumber,
-            reason: `Falta el valor de la columna de nombre ('${nameColumn}')`,
+            reason: `Missing value for filename column ('${nameColumn}')`,
           });
           setProgress({ done: i + 1, total: sheet.rows.length });
           continue;
