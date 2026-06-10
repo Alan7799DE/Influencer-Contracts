@@ -612,10 +612,13 @@ function StepMapping({
     <Card>
       <CardHeader>
         <CardTitle className="text-base">3. Map the variables</CardTitle>
-        <p className="text-xs text-muted-foreground mt-1">
-          For each variable, pick a column from your file or set a fixed value
-          that will be the same across every contract.
-        </p>
+        <div className="flex items-start gap-2.5 rounded-lg border border-primary/20 bg-primary/5 px-3 py-2.5 mt-2">
+          <Info className="size-4 text-primary shrink-0 mt-0.5" />
+          <p className="text-sm font-medium text-foreground">
+            For each variable, pick a column from your file or set a fixed value
+            that will be the same across every contract.
+          </p>
+        </div>
       </CardHeader>
       <CardContent className="space-y-3">
         {template.variables.map((v) => {
