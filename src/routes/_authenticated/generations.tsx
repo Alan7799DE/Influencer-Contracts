@@ -74,6 +74,7 @@ function GenerationsPage() {
   const [sources, setSources] = useState<Record<string, "column" | "fixed">>({});
   const [constants, setConstants] = useState<Record<string, string>>({});
   const [nameColumn, setNameColumn] = useState<string>("");
+  const [generated, setGenerated] = useState(false);
 
   const allMapped =
     !!template &&
