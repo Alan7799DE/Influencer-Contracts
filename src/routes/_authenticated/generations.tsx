@@ -191,6 +191,7 @@ function GenerationsPage() {
           nameColumn={nameColumn}
           canGenerate={canGenerate}
           onDone={reset}
+          onGenerated={() => setGenerated(true)}
         />
       )}
 
