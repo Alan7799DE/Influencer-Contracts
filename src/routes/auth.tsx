@@ -202,6 +202,44 @@ function AuthPage() {
   );
 }
 
+function getPasswordStrength(password: string): { score: number; label: string; color: string } {
+  let score = 0;
+  if (password.length >= 6) score++;
+  if (/[A-Z]/.test(password)) score++;
+  if (/[0-9]/.test(password)) score++;
+  if (/[^A-Za-z0-9]/.test(password)) score++;
+
+  const levels = [
+    { label: "Very weak", color: "bg-destructive" },
+    { label: "Weak", color: "bg-destructive/80" },
+    { label: "Fair", color: "bg-yellow-500" },
+    { label: "Good", color: "bg-emerald-500/70" },
+    { label: "Strong", color: "bg-emerald-500" },
+  ];
+  return { score, ...levels[score] };
+}
+
+function PasswordStrength({ password }: { password: string }) {
+  const { score, label, color } = getPasswordStrength(password);
+  const segments = 4;
+
+  return (
+    <div className="space-y-1.5">
+      <div className="flex gap-1">
+        {Array.from({ length: segments }).map((_, i) => (
+          <div
+            key={i}
+            className={`h-1.5 flex-1 rounded-full transition-colors ${
+              i < score ? color : "bg-muted"
+            }`}
+          />
+        ))}
+      </div>
+      <p className="text-xs text-muted-foreground">{label}</p>
+    </div>
+  );
+}
+
 function translateAuthError(msg: string): string {
   if (/invalid login credentials/i.test(msg)) return "Incorrect email or password";
   if (/user already registered/i.test(msg)) return "An account with that email already exists";
