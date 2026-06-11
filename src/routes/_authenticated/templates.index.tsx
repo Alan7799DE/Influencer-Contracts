@@ -37,6 +37,17 @@ type TemplateRow = {
 };
 
 export const Route = createFileRoute("/_authenticated/templates/")({
+  head: () => ({
+    meta: [
+      { title: "Contract templates · Easy Contracts" },
+      { name: "description", content: "Manage your contract templates: upload Word files, edit variables, and prepare them for bulk generation." },
+      { property: "og:title", content: "Contract templates · Easy Contracts" },
+      { property: "og:description", content: "Manage your contract templates and prepare them for bulk generation." },
+      { property: "og:url", content: "https://easycontracts.site/templates" },
+      { property: "og:type", content: "website" },
+    ],
+    links: [{ rel: "canonical", href: "https://easycontracts.site/templates" }],
+  }),
   component: TemplatesPage,
 });
 
