@@ -94,6 +94,7 @@ function GenerationsPage() {
 
   function reset() {
     setStep(1);
+    setGenerated(false);
     setTemplate(null);
     setSheet(null);
     setFileName("");
