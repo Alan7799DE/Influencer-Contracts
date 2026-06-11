@@ -169,6 +169,9 @@ function AuthPage() {
                     disabled={loading}
                     placeholder="••••••••"
                   />
+                  {mode === "signup" && password.length > 0 && (
+                    <PasswordStrength password={password} />
+                  )}
                 </div>
                 {mode === "signup" && (
                   <div className="space-y-2">
