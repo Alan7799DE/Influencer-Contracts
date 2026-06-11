@@ -821,7 +821,11 @@ function StepGenerate({
     total: number;
     success: number;
     errors: Array<{ row: number; reason: string }>;
-    warnings: Array<{ row: number; reason: string }>;
+    warnings: Array<{
+      row: number;
+      missingFields: string[];
+      missingName: { column: string; fallbackFile: string } | null;
+    }>;
     cancelled: boolean;
   } | null>(null);
 
