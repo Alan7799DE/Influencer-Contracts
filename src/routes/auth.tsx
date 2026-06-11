@@ -31,6 +31,10 @@ export const Route = createFileRoute("/auth")({
 const credentialsSchema = z.object({
   email: z.string().trim().email("Invalid email").max(255),
   password: z.string().min(6, "Minimum 6 characters").max(72),
+  confirmPassword: z.string().min(6, "Minimum 6 characters").max(72),
+}).refine((data) => data.password === data.confirmPassword, {
+  message: "Passwords do not match",
+  path: ["confirmPassword"],
 });
 
 function AuthPage() {
@@ -38,11 +42,12 @@ function AuthPage() {
   const [mode, setMode] = useState<"login" | "signup">("login");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [loading, setLoading] = useState(false);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    const parsed = credentialsSchema.safeParse({ email, password });
+    const parsed = credentialsSchema.safeParse({ email, password, confirmPassword });
     if (!parsed.success) {
       toast.error(parsed.error.issues[0]?.message ?? "Invalid data");
       return;
@@ -63,6 +68,7 @@ function AuthPage() {
           toast.success("Account created. Check your email to confirm it.");
           setMode("login");
           setPassword("");
+          setConfirmPassword("");
           return;
         }
         toast.success("Account created. Welcome!");
@@ -123,7 +129,11 @@ function AuthPage() {
 
           <Tabs
             value={mode}
-            onValueChange={(v) => setMode(v as "login" | "signup")}
+            onValueChange={(v) => {
+              setMode(v as "login" | "signup");
+              setPassword("");
+              setConfirmPassword("");
+            }}
           >
             <TabsList className="grid w-full grid-cols-2">
               <TabsTrigger value="login">Sign in</TabsTrigger>
@@ -160,6 +170,22 @@ function AuthPage() {
                     placeholder="••••••••"
                   />
                 </div>
+                {mode === "signup" && (
+                  <div className="space-y-2">
+                    <Label htmlFor="confirmPassword">Confirm password</Label>
+                    <Input
+                      id="confirmPassword"
+                      type="password"
+                      autoComplete="new-password"
+                      value={confirmPassword}
+                      onChange={(e) => setConfirmPassword(e.target.value)}
+                      required
+                      minLength={6}
+                      disabled={loading}
+                      placeholder="••••••••"
+                    />
+                  </div>
+                )}
                 <Button type="submit" className="w-full" disabled={loading}>
                   {loading && <Loader2 className="size-4 animate-spin" />}
                   {mode === "login" ? "Sign in" : "Create account"}
