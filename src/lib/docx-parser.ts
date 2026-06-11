@@ -28,7 +28,15 @@ export function normalizeVariableType(value: unknown): VariableType {
   }
 }
 
-const PLACEHOLDER_RE = /\{\{\s*([a-zA-Z_][a-zA-Z0-9_]*)\s*\}\}/g;
+// Allow any characters inside {{ }} except braces, so variable names can
+// include spaces, numbers as first char, accents, etc. Surrounding and
+// repeated internal whitespace is collapsed by `normalizeVariableName`.
+const PLACEHOLDER_RE = /\{\{\s*([^{}]+?)\s*\}\}/g;
+
+/** Collapse internal whitespace; preserve original characters otherwise. */
+export function normalizeVariableName(raw: string): string {
+  return raw.trim().replace(/\s+/g, " ");
+}
 
 /**
  * Extract all `{{variable_name}}` placeholders from a .docx file.
