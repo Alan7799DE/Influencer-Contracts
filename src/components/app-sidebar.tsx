@@ -46,7 +46,7 @@ export function AppSidebar({ email }: { email: string | null }) {
             <FileText className="size-4" />
           </div>
           <div className="flex flex-col leading-tight group-data-[collapsible=icon]:hidden">
-            <span className="text-sm font-semibold">Contracts</span>
+            <span className="text-sm font-semibold">Easy Contracts</span>
             <span className="text-xs text-muted-foreground">Bulk generator</span>
           </div>
         </div>

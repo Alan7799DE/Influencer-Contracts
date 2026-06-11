@@ -81,14 +81,14 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Contracts · Bulk generator" },
+      { title: "Easy Contracts · Bulk generator" },
       {
         name: "description",
         content:
           "Generate personalized influencer marketing contracts in bulk from a template and an Excel file.",
       },
-      { property: "og:title", content: "Contracts · Bulk generator" },
-      { name: "twitter:title", content: "Contracts · Bulk generator" },
+      { property: "og:title", content: "Easy Contracts · Bulk generator" },
+      { name: "twitter:title", content: "Easy Contracts · Bulk generator" },
       { name: "description", content: "Contract Forge automates the creation of personalized influencer marketing contracts." },
       { property: "og:description", content: "Contract Forge automates the creation of personalized influencer marketing contracts." },
       { name: "twitter:description", content: "Contract Forge automates the creation of personalized influencer marketing contracts." },
