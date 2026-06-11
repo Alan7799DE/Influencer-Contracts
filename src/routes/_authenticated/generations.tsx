@@ -801,6 +801,7 @@ function StepGenerate({
   nameColumn,
   canGenerate,
   onDone,
+  onGenerated,
 }: {
   template: TemplateRow;
   sheet: ParsedSheet;
