@@ -114,7 +114,7 @@ function AuthPage() {
         <div className="w-full max-w-sm space-y-8">
           <div className="lg:hidden flex items-center gap-2 font-semibold text-lg">
             <FileText className="size-6 text-primary" />
-            Contracts
+            Easy Contracts
           </div>
           <div className="space-y-2">
             <h2 className="text-2xl font-semibold tracking-tight">
