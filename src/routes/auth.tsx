@@ -94,7 +94,7 @@ function AuthPage() {
       <section className="hidden lg:flex flex-col justify-between p-12 bg-gradient-to-br from-primary to-primary/70 text-primary-foreground">
         <div className="flex items-center gap-2 font-semibold text-lg">
           <FileText className="size-6" />
-          Contracts
+          Easy Contracts
         </div>
         <div className="space-y-4 max-w-md">
           <h1 className="text-4xl font-bold leading-tight">
