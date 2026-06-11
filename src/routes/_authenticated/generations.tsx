@@ -811,6 +811,7 @@ function StepGenerate({
   nameColumn: string;
   canGenerate: boolean;
   onDone: () => void;
+  onGenerated: () => void;
 }) {
   const previewRef = useRef<HTMLDivElement>(null);
   const cancelRef = useRef(false);
