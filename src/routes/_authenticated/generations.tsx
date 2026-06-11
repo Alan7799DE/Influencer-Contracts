@@ -946,7 +946,11 @@ function StepGenerate({
     setProgress({ done: 0, total: sheet.rows.length });
 
     const errors: Array<{ row: number; reason: string }> = [];
-    const warnings: Array<{ row: number; reason: string }> = [];
+    const warnings: Array<{
+      row: number;
+      missingFields: string[];
+      missingName: { column: string; fallbackFile: string } | null;
+    }> = [];
     let successCount = 0;
     let cancelled = false;
 
