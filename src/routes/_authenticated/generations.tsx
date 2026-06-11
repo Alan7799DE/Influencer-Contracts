@@ -1343,3 +1343,75 @@ function IssueList({
   );
 }
 
+function WarningList({
+  items,
+}: {
+  items: Array<{
+    row: number;
+    missingFields: string[];
+    missingName: { column: string; fallbackFile: string } | null;
+  }>;
+}) {
+  return (
+    <div className="rounded-lg border border-amber-500/30 bg-amber-500/5">
+      <div className="px-4 py-3 border-b border-amber-500/20">
+        <div className="text-sm font-medium text-amber-900 dark:text-amber-200">
+          Contracts that need your attention
+        </div>
+        <div className="text-xs text-amber-800/80 dark:text-amber-300/80 mt-0.5">
+          These contracts were created and are inside the ZIP, but some fields
+          were left blank in your spreadsheet. Review them before sending.
+        </div>
+      </div>
+      <div className="max-h-72 overflow-auto divide-y divide-amber-500/15">
+        {items.map((w, i) => (
+          <div key={i} className="px-4 py-3 text-sm space-y-2">
+            <div className="flex items-center gap-2">
+              <Badge
+                variant="outline"
+                className="shrink-0 border-amber-500/40 text-amber-700 dark:text-amber-300 bg-amber-500/10"
+              >
+                Row {w.row}
+              </Badge>
+              {w.missingName && (
+                <span className="text-xs text-muted-foreground">
+                  Saved as{" "}
+                  <code className="font-mono text-foreground bg-muted px-1.5 py-0.5 rounded">
+                    {w.missingName.fallbackFile}
+                  </code>
+                </span>
+              )}
+            </div>
+            {w.missingFields.length > 0 && (
+              <div className="text-sm text-foreground/80">
+                Empty fields:{" "}
+                <span className="inline-flex flex-wrap gap-1 align-middle">
+                  {w.missingFields.map((f) => (
+                    <Badge
+                      key={f}
+                      variant="secondary"
+                      className="font-normal"
+                    >
+                      {f}
+                    </Badge>
+                  ))}
+                </span>
+              </div>
+            )}
+            {w.missingName && (
+              <div className="text-sm text-foreground/80">
+                The column{" "}
+                <code className="font-mono text-foreground bg-muted px-1.5 py-0.5 rounded">
+                  {w.missingName.column}
+                </code>{" "}
+                used to name the file was empty, so we used a generic name.
+              </div>
+            )}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+
