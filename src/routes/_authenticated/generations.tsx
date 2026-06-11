@@ -35,7 +35,6 @@ import {
 import { cn } from "@/lib/utils";
 import { normalizeVariableType, type VariableType } from "@/lib/docx-parser";
 import {
-  autoMapColumns,
   buildSheetFromRaw,
   formatValue,
   parseXLSXRaw,
