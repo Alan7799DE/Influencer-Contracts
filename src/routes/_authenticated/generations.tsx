@@ -831,9 +831,27 @@ function StepGenerate({
     cancelled: boolean;
   } | null>(null);
 
-  // Build data for first row
+  // Pick the first row where every variable resolves to a non-empty value
+  // (fixed values count too). Fall back to row 0 if no row is fully complete.
+  const previewRowIdx = useMemo<number>(() => {
+    const idx = sheet.rows.findIndex((row) =>
+      template.variables.every((v) => {
+        const src = sources[v.name] ?? "column";
+        const raw =
+          src === "fixed"
+            ? constants[v.name] ?? ""
+            : mapping[v.name]
+              ? row[mapping[v.name]] ?? ""
+              : "";
+        return raw.trim() !== "";
+      }),
+    );
+    return idx >= 0 ? idx : 0;
+  }, [sheet, template, mapping, sources, constants]);
+
+  // Build data for the chosen preview row
   const firstRowData = useMemo<Record<string, string>>(() => {
-    const row = sheet.rows[0] ?? {};
+    const row = sheet.rows[previewRowIdx] ?? {};
     const out: Record<string, string> = {};
     for (const v of template.variables) {
       const src = sources[v.name] ?? "column";
@@ -844,7 +862,7 @@ function StepGenerate({
       out[v.name] = formatValue(raw, v.type);
     }
     return out;
-  }, [sheet, template, mapping, sources, constants]);
+  }, [sheet, template, mapping, sources, constants, previewRowIdx]);
 
   // Download template once
   useEffect(() => {
