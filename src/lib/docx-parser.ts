@@ -28,7 +28,15 @@ export function normalizeVariableType(value: unknown): VariableType {
   }
 }
 
-const PLACEHOLDER_RE = /\{\{\s*([a-zA-Z_][a-zA-Z0-9_]*)\s*\}\}/g;
+// Allow any characters inside {{ }} except braces, so variable names can
+// include spaces, numbers as first char, accents, etc. Surrounding and
+// repeated internal whitespace is collapsed by `normalizeVariableName`.
+const PLACEHOLDER_RE = /\{\{\s*([^{}]+?)\s*\}\}/g;
+
+/** Collapse internal whitespace; preserve original characters otherwise. */
+export function normalizeVariableName(raw: string): string {
+  return raw.trim().replace(/\s+/g, " ");
+}
 
 /**
  * Extract all `{{variable_name}}` placeholders from a .docx file.
@@ -64,7 +72,8 @@ export async function extractVariablesFromDocx(file: File): Promise<string[]> {
     let match: RegExpExecArray | null;
     PLACEHOLDER_RE.lastIndex = 0;
     while ((match = PLACEHOLDER_RE.exec(textOnly)) !== null) {
-      const name = match[1];
+      const name = normalizeVariableName(match[1]);
+      if (!name) continue;
       if (!found.has(name)) {
         found.add(name);
         ordered.push(name);
@@ -76,6 +85,6 @@ export async function extractVariablesFromDocx(file: File): Promise<string[]> {
 }
 
 export function humanizeVariableName(name: string): string {
-  const spaced = name.replace(/[_-]+/g, " ").trim();
+  const spaced = name.replace(/[_-]+/g, " ").replace(/\s+/g, " ").trim();
   return spaced.charAt(0).toUpperCase() + spaced.slice(1);
 }

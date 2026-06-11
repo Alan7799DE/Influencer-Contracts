@@ -192,6 +192,15 @@ export async function renderDocx(
     paragraphLoop: true,
     linebreaks: true,
     nullGetter: () => "",
+    // Custom parser: trim + collapse internal whitespace on the tag name so
+    // placeholders like `{{ nombre influencer }}` resolve to the data key
+    // `nombre influencer`. Also supports names starting with a number.
+    parser: (tag: string) => ({
+      get: (scope: Record<string, unknown>) => {
+        const key = tag.trim().replace(/\s+/g, " ");
+        return scope?.[key] ?? "";
+      },
+    }),
   });
   try {
     doc.render(data);
