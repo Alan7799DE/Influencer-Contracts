@@ -44,6 +44,17 @@ import {
 } from "@/lib/template-data";
 
 export const Route = createFileRoute("/_authenticated/generations")({
+  head: () => ({
+    meta: [
+      { title: "Generate contracts · Easy Contracts" },
+      { name: "description", content: "Pick a template, upload your Excel, map columns to variables and download every personalized contract as a ZIP." },
+      { property: "og:title", content: "Generate contracts · Easy Contracts" },
+      { property: "og:description", content: "Map your Excel to a template and download every personalized contract as a ZIP." },
+      { property: "og:url", content: "https://easycontracts.site/generations" },
+      { property: "og:type", content: "website" },
+    ],
+    links: [{ rel: "canonical", href: "https://easycontracts.site/generations" }],
+  }),
   component: GenerationsPage,
 });
 
