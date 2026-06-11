@@ -243,12 +243,12 @@ function canAdvance(
   return true;
 }
 
-function Stepper({ current }: { current: number }) {
+function Stepper({ current, completed }: { current: number; completed: boolean }) {
   return (
     <ol className="flex items-center gap-2">
       {STEPS.map((s, idx) => {
-        const isDone = current > s.id;
-        const isCurrent = current === s.id;
+        const isDone = current > s.id || (completed && s.id === STEPS.length);
+        const isCurrent = current === s.id && !isDone;
         return (
           <li key={s.id} className="flex items-center gap-2 flex-1">
             <div
