@@ -1002,17 +1002,15 @@ function StepGenerate({
           zip.file(name, bytes);
           successCount++;
 
-          const notes: string[] = [];
-          if (missing.length > 0) {
-            notes.push(
-              `empty field(s): ${missing.map((m) => `'${m}'`).join(", ")}`,
-            );
-          }
-          if (usedFallbackName) {
-            notes.push(`empty name column ('${nameColumn}') — named "${name}"`);
-          }
-          if (notes.length > 0) {
-            warnings.push({ row: rowNumber, reason: notes.join("; ") });
+          const hasMissing = missing.length > 0 || usedFallbackName;
+          if (hasMissing) {
+            warnings.push({
+              row: rowNumber,
+              missingFields: missing,
+              missingName: usedFallbackName
+                ? { column: nameColumn, fallbackFile: name }
+                : null,
+            });
           }
         } catch (err) {
           errors.push({
