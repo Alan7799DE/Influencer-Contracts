@@ -1193,7 +1193,7 @@ function StepGenerate({
         {/* Values table — shows exactly what each {{variable}} will receive */}
         <div className="rounded-lg border">
           <div className="px-3 py-2 text-xs font-medium bg-muted/40 border-b">
-            Values for the first row
+            Values for row {previewRowIdx + 2}
           </div>
           <div className="divide-y">
             {template.variables.map((v) => {
