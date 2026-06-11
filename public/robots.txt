@@ -1,7 +1,4 @@
 User-agent: *
 Allow: /
-Disallow: /auth
-Disallow: /templates
-Disallow: /generations
 
 Sitemap: https://easycontracts.site/sitemap.xml
