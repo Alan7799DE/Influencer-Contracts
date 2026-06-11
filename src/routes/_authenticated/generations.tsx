@@ -771,15 +771,20 @@ function StepName({
           </Select>
         </div>
 
-        {nameColumn && (
+        {nameColumn && sampleFile && (
           <div className="rounded-lg border bg-muted/30 p-4 space-y-1">
             <div className="text-xs text-muted-foreground">
-              Example (first row)
+              Example (row {sampleRowIdx + 2})
             </div>
             <div className="flex items-center gap-2">
               <FileText className="size-4 text-primary" />
               <code className="text-sm font-mono">{sampleFile}</code>
             </div>
+          </div>
+        )}
+        {nameColumn && !sampleFile && (
+          <div className="rounded-lg border border-amber-500/30 bg-amber-500/5 p-4 text-sm text-amber-700 dark:text-amber-400">
+            No row has a value in column "{nameColumn}". Pick a different column.
           </div>
         )}
       </CardContent>
