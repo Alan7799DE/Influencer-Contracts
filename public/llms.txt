@@ -1,0 +1,10 @@
+# Easy Contracts
+
+> Easy Contracts generates personalized influencer marketing contracts in bulk from a Word template and an Excel file.
+
+Easy Contracts lets you upload a `.docx` contract template with `{{variables}}`, map an Excel sheet's columns to those variables, and download a ZIP with every personalized contract ready to send.
+
+## Pages
+
+- [Home](/): Product landing page.
+- [Sign in](/auth): Create an account or sign in.
