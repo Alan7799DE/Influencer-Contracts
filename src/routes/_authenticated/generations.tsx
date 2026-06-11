@@ -740,8 +740,14 @@ function StepName({
   nameColumn: string;
   onChange: (col: string) => void;
 }) {
-  const sampleRaw = nameColumn ? sheet.rows[0]?.[nameColumn] ?? "" : "";
-  const sampleFile = `contract_${sanitizeFilename(sampleRaw)}.docx`;
+  const sampleRowIdx = nameColumn
+    ? sheet.rows.findIndex((r) => (r[nameColumn] ?? "").trim() !== "")
+    : -1;
+  const sampleRaw =
+    sampleRowIdx >= 0 ? sheet.rows[sampleRowIdx][nameColumn] ?? "" : "";
+  const sampleFile = sampleRaw
+    ? `contract_${sanitizeFilename(sampleRaw)}.docx`
+    : "";
 
   return (
     <Card>
