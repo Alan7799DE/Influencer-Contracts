@@ -131,7 +131,7 @@ function GenerationsPage() {
         </p>
       </div>
 
-      <Stepper current={step} />
+      <Stepper current={step} completed={generated} />
 
       {step === 1 && (
         <StepTemplate
