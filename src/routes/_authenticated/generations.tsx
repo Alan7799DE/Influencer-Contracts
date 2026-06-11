@@ -1187,7 +1187,7 @@ function StepGenerate({
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="text-xs text-muted-foreground">
-          Preview of the first contract with data from the first row.
+          Preview of the contract with data from row {previewRowIdx + 2} (first row with all variables filled).
         </div>
 
         {/* Values table — shows exactly what each {{variable}} will receive */}
