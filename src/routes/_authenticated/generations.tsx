@@ -1070,6 +1070,7 @@ function StepGenerate({
         warnings,
         cancelled,
       });
+      if (successCount > 0) onGenerated();
 
       if (cancelled) {
         toast.warning(
