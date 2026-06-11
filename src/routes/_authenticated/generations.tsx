@@ -1153,11 +1153,7 @@ function StepGenerate({
           )}
 
           {hasWarnings && (
-            <IssueList
-              title="Rows generated with warnings (included in the ZIP)"
-              items={result.warnings}
-              tone="warning"
-            />
+            <WarningList items={result.warnings} />
           )}
 
           <div className="flex justify-end gap-2 pt-2">
