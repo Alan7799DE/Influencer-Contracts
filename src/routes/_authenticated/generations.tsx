@@ -740,8 +740,14 @@ function StepName({
   nameColumn: string;
   onChange: (col: string) => void;
 }) {
-  const sampleRaw = nameColumn ? sheet.rows[0]?.[nameColumn] ?? "" : "";
-  const sampleFile = `contract_${sanitizeFilename(sampleRaw)}.docx`;
+  const sampleRowIdx = nameColumn
+    ? sheet.rows.findIndex((r) => (r[nameColumn] ?? "").trim() !== "")
+    : -1;
+  const sampleRaw =
+    sampleRowIdx >= 0 ? sheet.rows[sampleRowIdx][nameColumn] ?? "" : "";
+  const sampleFile = sampleRaw
+    ? `contract_${sanitizeFilename(sampleRaw)}.docx`
+    : "";
 
   return (
     <Card>
@@ -765,15 +771,20 @@ function StepName({
           </Select>
         </div>
 
-        {nameColumn && (
+        {nameColumn && sampleFile && (
           <div className="rounded-lg border bg-muted/30 p-4 space-y-1">
             <div className="text-xs text-muted-foreground">
-              Example (first row)
+              Example (row {sampleRowIdx + 2})
             </div>
             <div className="flex items-center gap-2">
               <FileText className="size-4 text-primary" />
               <code className="text-sm font-mono">{sampleFile}</code>
             </div>
+          </div>
+        )}
+        {nameColumn && !sampleFile && (
+          <div className="rounded-lg border border-amber-500/30 bg-amber-500/5 p-4 text-sm text-amber-700 dark:text-amber-400">
+            No row has a value in column "{nameColumn}". Pick a different column.
           </div>
         )}
       </CardContent>
@@ -820,9 +831,27 @@ function StepGenerate({
     cancelled: boolean;
   } | null>(null);
 
-  // Build data for first row
+  // Pick the first row where every variable resolves to a non-empty value
+  // (fixed values count too). Fall back to row 0 if no row is fully complete.
+  const previewRowIdx = useMemo<number>(() => {
+    const idx = sheet.rows.findIndex((row) =>
+      template.variables.every((v) => {
+        const src = sources[v.name] ?? "column";
+        const raw =
+          src === "fixed"
+            ? constants[v.name] ?? ""
+            : mapping[v.name]
+              ? row[mapping[v.name]] ?? ""
+              : "";
+        return raw.trim() !== "";
+      }),
+    );
+    return idx >= 0 ? idx : 0;
+  }, [sheet, template, mapping, sources, constants]);
+
+  // Build data for the chosen preview row
   const firstRowData = useMemo<Record<string, string>>(() => {
-    const row = sheet.rows[0] ?? {};
+    const row = sheet.rows[previewRowIdx] ?? {};
     const out: Record<string, string> = {};
     for (const v of template.variables) {
       const src = sources[v.name] ?? "column";
@@ -833,7 +862,7 @@ function StepGenerate({
       out[v.name] = formatValue(raw, v.type);
     }
     return out;
-  }, [sheet, template, mapping, sources, constants]);
+  }, [sheet, template, mapping, sources, constants, previewRowIdx]);
 
   // Download template once
   useEffect(() => {
@@ -1158,13 +1187,13 @@ function StepGenerate({
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="text-xs text-muted-foreground">
-          Preview of the first contract with data from the first row.
+          Preview of the contract with data from row {previewRowIdx + 2} (first row with all variables filled).
         </div>
 
         {/* Values table — shows exactly what each {{variable}} will receive */}
         <div className="rounded-lg border">
           <div className="px-3 py-2 text-xs font-medium bg-muted/40 border-b">
-            Values for the first row
+            Values for row {previewRowIdx + 2}
           </div>
           <div className="divide-y">
             {template.variables.map((v) => {
