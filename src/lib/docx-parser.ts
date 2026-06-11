@@ -72,7 +72,8 @@ export async function extractVariablesFromDocx(file: File): Promise<string[]> {
     let match: RegExpExecArray | null;
     PLACEHOLDER_RE.lastIndex = 0;
     while ((match = PLACEHOLDER_RE.exec(textOnly)) !== null) {
-      const name = match[1];
+      const name = normalizeVariableName(match[1]);
+      if (!name) continue;
       if (!found.has(name)) {
         found.add(name);
         ordered.push(name);
@@ -84,6 +85,6 @@ export async function extractVariablesFromDocx(file: File): Promise<string[]> {
 }
 
 export function humanizeVariableName(name: string): string {
-  const spaced = name.replace(/[_-]+/g, " ").trim();
+  const spaced = name.replace(/[_-]+/g, " ").replace(/\s+/g, " ").trim();
   return spaced.charAt(0).toUpperCase() + spaced.slice(1);
 }
