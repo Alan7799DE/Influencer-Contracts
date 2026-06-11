@@ -112,12 +112,7 @@ function GenerationsPage() {
     setHeaderRowIdx(idx);
     setRawRows(raw);
     if (template) {
-      setMapping(
-        autoMapColumns(
-          template.variables.map((v) => v.name),
-          s.headers,
-        ),
-      );
+      setMapping({});
       if (!nameColumn || !s.headers.includes(nameColumn)) {
         setNameColumn(s.headers[0] ?? "");
       }
