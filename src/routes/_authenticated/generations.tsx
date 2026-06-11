@@ -74,6 +74,7 @@ function GenerationsPage() {
   const [sources, setSources] = useState<Record<string, "column" | "fixed">>({});
   const [constants, setConstants] = useState<Record<string, string>>({});
   const [nameColumn, setNameColumn] = useState<string>("");
+  const [generated, setGenerated] = useState(false);
 
   const allMapped =
     !!template &&
@@ -93,6 +94,7 @@ function GenerationsPage() {
 
   function reset() {
     setStep(1);
+    setGenerated(false);
     setTemplate(null);
     setSheet(null);
     setFileName("");
@@ -129,7 +131,7 @@ function GenerationsPage() {
         </p>
       </div>
 
-      <Stepper current={step} />
+      <Stepper current={step} completed={generated} />
 
       {step === 1 && (
         <StepTemplate
@@ -189,6 +191,7 @@ function GenerationsPage() {
           nameColumn={nameColumn}
           canGenerate={canGenerate}
           onDone={reset}
+          onGenerated={() => setGenerated(true)}
         />
       )}
 
@@ -241,12 +244,12 @@ function canAdvance(
   return true;
 }
 
-function Stepper({ current }: { current: number }) {
+function Stepper({ current, completed }: { current: number; completed: boolean }) {
   return (
     <ol className="flex items-center gap-2">
       {STEPS.map((s, idx) => {
-        const isDone = current > s.id;
-        const isCurrent = current === s.id;
+        const isDone = current > s.id || (completed && s.id === STEPS.length);
+        const isCurrent = current === s.id && !isDone;
         return (
           <li key={s.id} className="flex items-center gap-2 flex-1">
             <div
@@ -798,6 +801,7 @@ function StepGenerate({
   nameColumn,
   canGenerate,
   onDone,
+  onGenerated,
 }: {
   template: TemplateRow;
   sheet: ParsedSheet;
@@ -808,6 +812,7 @@ function StepGenerate({
   nameColumn: string;
   canGenerate: boolean;
   onDone: () => void;
+  onGenerated: () => void;
 }) {
   const previewRef = useRef<HTMLDivElement>(null);
   const cancelRef = useRef(false);
@@ -1065,6 +1070,7 @@ function StepGenerate({
         warnings,
         cancelled,
       });
+      if (successCount > 0) onGenerated();
 
       if (cancelled) {
         toast.warning(
