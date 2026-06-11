@@ -7,4 +7,5 @@ Easy Contracts lets you upload a `.docx` contract template with `{{variables}}`,
 ## Pages
 
 - [Home](/): Product landing page.
+- [Influencer contract templates](/influencer-contract-templates): Guide to generating influencer marketing contracts at scale from a Word template and an Excel file.
 - [Sign in](/auth): Create an account or sign in.

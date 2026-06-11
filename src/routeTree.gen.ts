@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
+import { Route as InfluencerContractTemplatesRouteImport } from './routes/influencer-contract-templates'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as IndexRouteImport } from './routes/index'
@@ -23,6 +24,12 @@ const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
   path: '/sitemap.xml',
   getParentRoute: () => rootRouteImport,
 } as any)
+const InfluencerContractTemplatesRoute =
+  InfluencerContractTemplatesRouteImport.update({
+    id: '/influencer-contract-templates',
+    path: '/influencer-contract-templates',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const AuthRoute = AuthRouteImport.update({
   id: '/auth',
   path: '/auth',
@@ -65,6 +72,7 @@ const AuthenticatedTemplatesIdEditRoute =
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
+  '/influencer-contract-templates': typeof InfluencerContractTemplatesRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/generations': typeof AuthenticatedGenerationsRoute
   '/templates/new': typeof AuthenticatedTemplatesNewRoute
@@ -74,6 +82,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
+  '/influencer-contract-templates': typeof InfluencerContractTemplatesRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/generations': typeof AuthenticatedGenerationsRoute
   '/templates/new': typeof AuthenticatedTemplatesNewRoute
@@ -85,6 +94,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/auth': typeof AuthRoute
+  '/influencer-contract-templates': typeof InfluencerContractTemplatesRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/_authenticated/generations': typeof AuthenticatedGenerationsRoute
   '/_authenticated/templates/new': typeof AuthenticatedTemplatesNewRoute
@@ -96,6 +106,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/auth'
+    | '/influencer-contract-templates'
     | '/sitemap.xml'
     | '/generations'
     | '/templates/new'
@@ -105,6 +116,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/auth'
+    | '/influencer-contract-templates'
     | '/sitemap.xml'
     | '/generations'
     | '/templates/new'
@@ -115,6 +127,7 @@ export interface FileRouteTypes {
     | '/'
     | '/_authenticated'
     | '/auth'
+    | '/influencer-contract-templates'
     | '/sitemap.xml'
     | '/_authenticated/generations'
     | '/_authenticated/templates/new'
@@ -126,6 +139,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   AuthRoute: typeof AuthRoute
+  InfluencerContractTemplatesRoute: typeof InfluencerContractTemplatesRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
 }
 
@@ -136,6 +150,13 @@ declare module '@tanstack/react-router' {
       path: '/sitemap.xml'
       fullPath: '/sitemap.xml'
       preLoaderRoute: typeof SitemapDotxmlRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/influencer-contract-templates': {
+      id: '/influencer-contract-templates'
+      path: '/influencer-contract-templates'
+      fullPath: '/influencer-contract-templates'
+      preLoaderRoute: typeof InfluencerContractTemplatesRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/auth': {
@@ -211,6 +232,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   AuthRoute: AuthRoute,
+  InfluencerContractTemplatesRoute: InfluencerContractTemplatesRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
 }
 export const routeTree = rootRouteImport
