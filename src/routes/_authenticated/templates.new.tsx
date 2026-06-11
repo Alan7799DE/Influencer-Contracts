@@ -24,6 +24,17 @@ import {
 } from "@/lib/docx-parser";
 
 export const Route = createFileRoute("/_authenticated/templates/new")({
+  head: () => ({
+    meta: [
+      { title: "New template · Easy Contracts" },
+      { name: "description", content: "Upload a Word document, detect its variables, and save it as a reusable contract template." },
+      { property: "og:title", content: "New template · Easy Contracts" },
+      { property: "og:description", content: "Upload a Word document and save it as a reusable contract template." },
+      { property: "og:url", content: "https://easycontracts.site/templates/new" },
+      { property: "og:type", content: "website" },
+    ],
+    links: [{ rel: "canonical", href: "https://easycontracts.site/templates/new" }],
+  }),
   component: NewTemplatePage,
 });
 

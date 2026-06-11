@@ -27,6 +27,15 @@ import {
 } from "@/lib/docx-parser";
 
 export const Route = createFileRoute("/_authenticated/templates/$id/edit")({
+  head: () => ({
+    meta: [
+      { title: "Edit template · Easy Contracts" },
+      { name: "description", content: "Rename your template, adjust variable labels and types, or replace its Word file." },
+      { property: "og:title", content: "Edit template · Easy Contracts" },
+      { property: "og:description", content: "Rename your template, adjust variables, or replace its Word file." },
+      { property: "og:type", content: "website" },
+    ],
+  }),
   component: EditTemplatePage,
 });
 

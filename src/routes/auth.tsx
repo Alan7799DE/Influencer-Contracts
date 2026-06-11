@@ -14,12 +14,14 @@ export const Route = createFileRoute("/auth")({
   ssr: false,
   head: () => ({
     meta: [
-      { title: "Sign in · Contract generator" },
-      {
-        name: "description",
-        content: "Sign in to your account to generate personalized contracts.",
-      },
+      { title: "Sign in · Easy Contracts" },
+      { name: "description", content: "Sign in or create your Easy Contracts account to generate personalized contracts in bulk from a template and an Excel file." },
+      { property: "og:title", content: "Sign in · Easy Contracts" },
+      { property: "og:description", content: "Sign in or create your Easy Contracts account to generate personalized contracts in bulk." },
+      { property: "og:url", content: "https://easycontracts.site/auth" },
+      { property: "og:type", content: "website" },
     ],
+    links: [{ rel: "canonical", href: "https://easycontracts.site/auth" }],
   }),
   beforeLoad: async () => {
     const { data } = await supabase.auth.getSession();

@@ -41,9 +41,9 @@ function AuthenticatedLayout() {
           <Separator orientation="vertical" className="h-5" />
           <h1 className="text-sm font-medium">{title}</h1>
         </header>
-        <div className="flex-1 p-6 md:p-8">
+        <main className="flex-1 p-6 md:p-8">
           <Outlet />
-        </div>
+        </main>
       </SidebarInset>
     </SidebarProvider>
   );
