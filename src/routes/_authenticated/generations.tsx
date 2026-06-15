@@ -43,6 +43,7 @@ import {
   type ParsedSheet,
   type WorkbookData,
 } from "@/lib/template-data";
+import { docxToPdf } from "@/lib/docx-to-pdf";
 
 export const Route = createFileRoute("/_authenticated/generations")({
   head: () => ({
@@ -89,6 +90,7 @@ function GenerationsPage() {
   const [sources, setSources] = useState<Record<string, "column" | "fixed">>({});
   const [constants, setConstants] = useState<Record<string, string>>({});
   const [nameColumn, setNameColumn] = useState<string>("");
+  const [outputFormat, setOutputFormat] = useState<"docx" | "pdf">("docx");
   const [generated, setGenerated] = useState(false);
 
   const allMapped =
@@ -122,6 +124,7 @@ function GenerationsPage() {
     setSources({});
     setConstants({});
     setNameColumn("");
+    setOutputFormat("docx");
   }
 
   function applyHeader(raw: string[][], idx: number, name: string) {
@@ -231,6 +234,8 @@ function GenerationsPage() {
           sheet={sheet}
           nameColumn={nameColumn}
           onChange={setNameColumn}
+          outputFormat={outputFormat}
+          onFormatChange={setOutputFormat}
         />
       )}
 
@@ -243,6 +248,7 @@ function GenerationsPage() {
           sources={sources}
           constants={constants}
           nameColumn={nameColumn}
+          outputFormat={outputFormat}
           canGenerate={canGenerate}
           onDone={reset}
           onGenerated={() => setGenerated(true)}
@@ -821,10 +827,14 @@ function StepName({
   sheet,
   nameColumn,
   onChange,
+  outputFormat,
+  onFormatChange,
 }: {
   sheet: ParsedSheet;
   nameColumn: string;
   onChange: (col: string) => void;
+  outputFormat: "docx" | "pdf";
+  onFormatChange: (f: "docx" | "pdf") => void;
 }) {
   const sampleRowIdx = nameColumn
     ? sheet.rows.findIndex((r) => (r[nameColumn] ?? "").trim() !== "")
@@ -832,15 +842,43 @@ function StepName({
   const sampleRaw =
     sampleRowIdx >= 0 ? sheet.rows[sampleRowIdx][nameColumn] ?? "" : "";
   const sampleFile = sampleRaw
-    ? `contract_${sanitizeFilename(sampleRaw)}.docx`
+    ? `contract_${sanitizeFilename(sampleRaw)}.${outputFormat}`
     : "";
 
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="text-base">4. File names</CardTitle>
+        <CardTitle className="text-base">4. File names & format</CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
+        <div className="space-y-2">
+          <Label>Download format</Label>
+          <div className="inline-flex rounded-md border bg-muted/40 p-0.5 text-sm">
+            {(["docx", "pdf"] as const).map((fmt) => (
+              <button
+                key={fmt}
+                type="button"
+                onClick={() => onFormatChange(fmt)}
+                className={cn(
+                  "px-3 py-1.5 rounded transition-colors",
+                  outputFormat === fmt
+                    ? "bg-background shadow-sm font-medium"
+                    : "text-muted-foreground hover:text-foreground",
+                )}
+              >
+                {fmt === "docx" ? "Word (.docx)" : "PDF (.pdf)"}
+              </button>
+            ))}
+          </div>
+          {outputFormat === "pdf" && (
+            <p className="text-xs text-muted-foreground">
+              PDFs are converted from the rendered document in your browser, so
+              generating is slower and the text is not selectable. For editable
+              files choose Word.
+            </p>
+          )}
+        </div>
+
         <div className="space-y-2">
           <Label>Column used to name each contract</Label>
           <Select value={nameColumn} onValueChange={onChange}>
@@ -888,6 +926,7 @@ function StepGenerate({
   sources,
   constants,
   nameColumn,
+  outputFormat,
   canGenerate,
   onDone,
   onGenerated,
@@ -899,6 +938,7 @@ function StepGenerate({
   sources: Record<string, "column" | "fixed">;
   constants: Record<string, string>;
   nameColumn: string;
+  outputFormat: "docx" | "pdf";
   canGenerate: boolean;
   onDone: () => void;
   onGenerated: () => void;
@@ -1088,11 +1128,15 @@ function StepGenerate({
         }
 
         try {
+          const ext = outputFormat === "pdf" ? "pdf" : "docx";
           const base = `contract_${sanitizeFilename(nameRaw)}`;
           const count = used.get(base) ?? 0;
           used.set(base, count + 1);
-          const name = count === 0 ? `${base}.docx` : `${base}_${count + 1}.docx`;
-          const bytes = await renderDocx(templateBuffer, data);
+          const name =
+            count === 0 ? `${base}.${ext}` : `${base}_${count + 1}.${ext}`;
+          const docxBytes = await renderDocx(templateBuffer, data);
+          const bytes =
+            outputFormat === "pdf" ? await docxToPdf(docxBytes) : docxBytes;
           zip.file(name, bytes);
           successCount++;
 
@@ -1271,14 +1315,20 @@ function StepGenerate({
       <CardHeader>
         <CardTitle className="text-base flex items-center justify-between">
           <span>5. Preview and generation</span>
-          <Badge variant="secondary" className="font-normal">
-            {sheet.rows.length} contracts
-          </Badge>
+          <div className="flex items-center gap-2">
+            <Badge variant="outline" className="font-normal uppercase">
+              {outputFormat}
+            </Badge>
+            <Badge variant="secondary" className="font-normal">
+              {sheet.rows.length} contracts
+            </Badge>
+          </div>
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="text-xs text-muted-foreground">
           Preview of the contract with data from row {previewRowIdx + 2} (first row with all variables filled).
+          {outputFormat === "pdf" && " Files will download as PDF."}
         </div>
 
         {/* Values table — shows exactly what each {{variable}} will receive */}
