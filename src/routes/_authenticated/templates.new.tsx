@@ -1,6 +1,13 @@
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
-import { ArrowLeft, Loader2, Save, Upload, FileText } from "lucide-react";
+import {
+  ArrowLeft,
+  Loader2,
+  Save,
+  Upload,
+  FileText,
+  AlertTriangle,
+} from "lucide-react";
 import { toast } from "sonner";
 
 import { supabase } from "@/integrations/supabase/client";
@@ -22,6 +29,7 @@ import {
   type DetectedVariable,
   type VariableType,
 } from "@/lib/docx-parser";
+import { findTemplateIssues, type TemplateIssue } from "@/lib/template-data";
 
 export const Route = createFileRoute("/_authenticated/templates/new")({
   head: () => ({
@@ -47,6 +55,7 @@ function NewTemplatePage() {
   const [name, setName] = useState("");
   const [file, setFile] = useState<File | null>(null);
   const [variables, setVariables] = useState<DetectedVariable[]>([]);
+  const [templateIssues, setTemplateIssues] = useState<TemplateIssue[]>([]);
   const [parsing, setParsing] = useState(false);
   const [saving, setSaving] = useState(false);
 
@@ -89,6 +98,7 @@ function NewTemplatePage() {
     setParsing(true);
     setFile(selected);
     setVariables([]);
+    setTemplateIssues([]);
     try {
       const names = await extractVariablesFromDocx(selected);
       if (names.length === 0) {
@@ -103,6 +113,10 @@ function NewTemplatePage() {
           type: "text" as VariableType,
         })),
       );
+      // Dry-run the template to catch malformed placeholders (a forgotten
+      // opening/closing brace) before the user generates anything.
+      const buffer = await selected.arrayBuffer();
+      setTemplateIssues(await findTemplateIssues(buffer));
     } catch (err) {
       console.error(err);
       toast.error("Could not read the .docx");
@@ -273,6 +287,41 @@ function NewTemplatePage() {
               </div>
             </CardContent>
           </Card>
+
+          {!parsing && templateIssues.length > 0 && (
+            <div className="rounded-lg border border-amber-500/40 bg-amber-500/5 p-4">
+              <div className="flex items-center gap-2 text-sm font-medium text-amber-700 dark:text-amber-400">
+                <AlertTriangle className="size-4 shrink-0" />
+                Possible misconfigured brace
+              </div>
+              <p className="mt-1 text-xs text-muted-foreground">
+                The document may not generate correctly. Check the{" "}
+                <code className="rounded bg-muted px-1 py-0.5">{"{{ }}"}</code>{" "}
+                braces in your variables:
+              </p>
+              <ul className="mt-3 space-y-2">
+                {templateIssues.map((issue, i) => (
+                  <li
+                    key={i}
+                    className="rounded-md border border-amber-500/30 bg-background/60 p-2.5 text-xs"
+                  >
+                    <div className="text-foreground">{issue.message}</div>
+                    {issue.near && (
+                      <div className="mt-1 text-muted-foreground">
+                        Near:{" "}
+                        <code className="rounded bg-muted px-1 py-0.5 font-mono text-amber-700 dark:text-amber-400">
+                          {issue.near}
+                        </code>
+                      </div>
+                    )}
+                  </li>
+                ))}
+              </ul>
+              <p className="mt-3 text-xs text-muted-foreground">
+                Fix it in Word, then upload the file again.
+              </p>
+            </div>
+          )}
 
           <Card>
             <CardHeader>
