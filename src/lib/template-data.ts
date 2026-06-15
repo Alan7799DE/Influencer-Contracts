@@ -239,3 +239,117 @@ export function formatDocxtemplaterError(err: unknown): string {
   if (err instanceof Error) return err.message;
   return "Render error";
 }
+
+export type TemplateIssueKind =
+  | "missing-close"
+  | "missing-open"
+  | "duplicate-open"
+  | "duplicate-close"
+  | "other";
+
+export type TemplateIssue = {
+  kind: TemplateIssueKind;
+  /** Friendly description of what is likely wrong. */
+  message: string;
+  /** Snippet of the document text where the problem was detected. */
+  near: string;
+};
+
+/**
+ * Validate a template by attempting a dry-run compile/render with empty data.
+ * docxtemplater catches malformed placeholders (a forgotten `{` or `}`) at
+ * compile time and reports the offending text + a classification, so we can
+ * tell the user whether an opening or closing brace is missing and where.
+ *
+ * Returns an empty array when the template is fine.
+ */
+export async function findTemplateIssues(
+  templateBuffer: ArrayBuffer,
+): Promise<TemplateIssue[]> {
+  const [{ default: PizZip }, { default: Docxtemplater }] = await Promise.all([
+    import("pizzip"),
+    import("docxtemplater"),
+  ]);
+  try {
+    const doc = new Docxtemplater(new PizZip(templateBuffer), {
+      delimiters: { start: "{{", end: "}}" },
+      paragraphLoop: true,
+      linebreaks: true,
+      nullGetter: () => "",
+      parser: (tag: string) => ({
+        get: (scope: Record<string, unknown>) => {
+          const key = tag.trim().replace(/\s+/g, " ");
+          return scope?.[key] ?? "";
+        },
+      }),
+    });
+    // Force a render so any tag problem surfaces even if compile is lazy.
+    doc.render({});
+    return [];
+  } catch (err) {
+    return parseTemplateIssues(err);
+  }
+}
+
+function parseTemplateIssues(err: unknown): TemplateIssue[] {
+  const inner =
+    err && typeof err === "object" && "properties" in err
+      ? (err as { properties?: { errors?: unknown[] } }).properties?.errors
+      : undefined;
+
+  if (!Array.isArray(inner) || inner.length === 0) {
+    return [
+      {
+        kind: "other",
+        message:
+          "The variables in this document seem malformed. Make sure each one uses {{ and }}.",
+        near: "",
+      },
+    ];
+  }
+
+  const seen = new Set<string>();
+  const issues: TemplateIssue[] = [];
+  for (const e of inner) {
+    const p =
+      e && typeof e === "object"
+        ? (e as {
+            properties?: { id?: string; context?: string; xtag?: string; explanation?: string };
+          }).properties ?? {}
+        : {};
+    const id = p.id ?? "";
+    const near = String(p.context ?? p.xtag ?? "").trim();
+
+    let kind: TemplateIssueKind = "other";
+    let message = "";
+    switch (id) {
+      case "unclosed_tag":
+        kind = "missing-close";
+        message =
+          "A closing brace is missing. A variable opens with “{{” but is never closed with “}}”.";
+        break;
+      case "unopened_tag":
+        kind = "missing-open";
+        message =
+          "An opening brace is missing. There is a “}}” without its matching “{{”.";
+        break;
+      case "duplicate_open_tag":
+        kind = "duplicate-open";
+        message = "There is an extra opening brace “{”.";
+        break;
+      case "duplicate_close_tag":
+        kind = "duplicate-close";
+        message = "There is an extra closing brace “}”.";
+        break;
+      default:
+        message =
+          p.explanation ?? "A variable in this document is malformed.";
+    }
+
+    const key = `${id}|${near}`;
+    if (seen.has(key)) continue;
+    seen.add(key);
+    issues.push({ kind, message, near });
+  }
+  return issues;
+}
