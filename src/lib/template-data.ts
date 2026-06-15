@@ -285,10 +285,14 @@ export async function findTemplateIssues(
     });
     // Force a render so any tag problem surfaces even if compile is lazy.
     doc.render({});
-    return [];
   } catch (err) {
+    // docxtemplater failed to compile — this is the authoritative diagnosis.
     return parseTemplateIssues(err);
   }
+  // It compiled, but a malformed tag (e.g. `{{fee}`) can be silently absorbed
+  // when it pairs with a stray `}}` elsewhere, producing a wrong tag instead
+  // of an error. Scan the raw text for loose/odd braces to catch that case.
+  return scanLooseBraces(new PizZip(templateBuffer));
 }
 
 function parseTemplateIssues(err: unknown): TemplateIssue[] {
@@ -347,6 +351,55 @@ function parseTemplateIssues(err: unknown): TemplateIssue[] {
     }
 
     const key = `${id}|${near}`;
+    if (seen.has(key)) continue;
+    seen.add(key);
+    issues.push({ kind, message, near });
+  }
+  return issues;
+}
+
+type ZipLike = {
+  file(pattern: RegExp): Array<{ asText(): string }>;
+};
+
+/**
+ * Fallback check for templates that compile fine but still contain a stray
+ * brace. Concatenates the document text and flags any run of braces that
+ * isn't a clean `{{` or `}}` (i.e. a lone `{`/`}` or three-plus in a row).
+ */
+function scanLooseBraces(zip: ZipLike): TemplateIssue[] {
+  const parts = zip.file(/word\/(document|header\d+|footer\d+)\.xml/) ?? [];
+  let text = "";
+  for (const f of parts) text += " " + f.asText().replace(/<[^>]+>/g, "");
+
+  const issues: TemplateIssue[] = [];
+  const seen = new Set<string>();
+  const runRe = /\{+|\}+/g;
+  let m: RegExpExecArray | null;
+  while ((m = runRe.exec(text)) !== null) {
+    const run = m[0];
+    if (run.length === 2) continue; // a well-formed "{{" or "}}"
+    const isOpen = run[0] === "{";
+
+    let kind: TemplateIssueKind;
+    let message: string;
+    if (run.length === 1) {
+      kind = isOpen ? "missing-open" : "missing-close";
+      message = isOpen
+        ? "A lone “{” was found. An opening brace looks incomplete — variables must open with “{{”."
+        : "A lone “}” was found. A closing brace looks incomplete — variables must close with “}}”.";
+    } else {
+      kind = isOpen ? "duplicate-open" : "duplicate-close";
+      message = isOpen
+        ? "Too many opening braces in a row. A variable should open with exactly “{{”."
+        : "Too many closing braces in a row. A variable should close with exactly “}}”.";
+    }
+
+    const start = Math.max(0, m.index - 18);
+    const end = Math.min(text.length, m.index + run.length + 18);
+    const near = text.slice(start, end).replace(/\s+/g, " ").trim();
+
+    const key = `${kind}|${near}`;
     if (seen.has(key)) continue;
     seen.add(key);
     issues.push({ kind, message, near });
