@@ -10,6 +10,7 @@ import {
   Download,
   FileSpreadsheet,
   FileText,
+  FileType,
   Info,
   Loader2,
   Upload,
@@ -234,8 +235,6 @@ function GenerationsPage() {
           sheet={sheet}
           nameColumn={nameColumn}
           onChange={setNameColumn}
-          outputFormat={outputFormat}
-          onFormatChange={setOutputFormat}
         />
       )}
 
@@ -249,6 +248,7 @@ function GenerationsPage() {
           constants={constants}
           nameColumn={nameColumn}
           outputFormat={outputFormat}
+          onFormatChange={setOutputFormat}
           canGenerate={canGenerate}
           onDone={reset}
           onGenerated={() => setGenerated(true)}
@@ -827,14 +827,10 @@ function StepName({
   sheet,
   nameColumn,
   onChange,
-  outputFormat,
-  onFormatChange,
 }: {
   sheet: ParsedSheet;
   nameColumn: string;
   onChange: (col: string) => void;
-  outputFormat: "docx" | "pdf";
-  onFormatChange: (f: "docx" | "pdf") => void;
 }) {
   const sampleRowIdx = nameColumn
     ? sheet.rows.findIndex((r) => (r[nameColumn] ?? "").trim() !== "")
@@ -842,43 +838,15 @@ function StepName({
   const sampleRaw =
     sampleRowIdx >= 0 ? sheet.rows[sampleRowIdx][nameColumn] ?? "" : "";
   const sampleFile = sampleRaw
-    ? `contract_${sanitizeFilename(sampleRaw)}.${outputFormat}`
+    ? `contract_${sanitizeFilename(sampleRaw)}`
     : "";
 
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="text-base">4. File names & format</CardTitle>
+        <CardTitle className="text-base">4. File names</CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
-        <div className="space-y-2">
-          <Label>Download format</Label>
-          <div className="inline-flex rounded-md border bg-muted/40 p-0.5 text-sm">
-            {(["docx", "pdf"] as const).map((fmt) => (
-              <button
-                key={fmt}
-                type="button"
-                onClick={() => onFormatChange(fmt)}
-                className={cn(
-                  "px-3 py-1.5 rounded transition-colors",
-                  outputFormat === fmt
-                    ? "bg-background shadow-sm font-medium"
-                    : "text-muted-foreground hover:text-foreground",
-                )}
-              >
-                {fmt === "docx" ? "Word (.docx)" : "PDF (.pdf)"}
-              </button>
-            ))}
-          </div>
-          {outputFormat === "pdf" && (
-            <p className="text-xs text-muted-foreground">
-              PDFs are converted from the rendered document in your browser, so
-              generating is slower and the text is not selectable. For editable
-              files choose Word.
-            </p>
-          )}
-        </div>
-
         <div className="space-y-2">
           <Label>Column used to name each contract</Label>
           <Select value={nameColumn} onValueChange={onChange}>
@@ -927,6 +895,7 @@ function StepGenerate({
   constants,
   nameColumn,
   outputFormat,
+  onFormatChange,
   canGenerate,
   onDone,
   onGenerated,
@@ -939,6 +908,7 @@ function StepGenerate({
   constants: Record<string, string>;
   nameColumn: string;
   outputFormat: "docx" | "pdf";
+  onFormatChange: (f: "docx" | "pdf") => void;
   canGenerate: boolean;
   onDone: () => void;
   onGenerated: () => void;
@@ -1315,20 +1285,86 @@ function StepGenerate({
       <CardHeader>
         <CardTitle className="text-base flex items-center justify-between">
           <span>5. Preview and generation</span>
-          <div className="flex items-center gap-2">
-            <Badge variant="outline" className="font-normal uppercase">
-              {outputFormat}
-            </Badge>
-            <Badge variant="secondary" className="font-normal">
-              {sheet.rows.length} contracts
-            </Badge>
-          </div>
+          <Badge variant="secondary" className="font-normal">
+            {sheet.rows.length} contracts
+          </Badge>
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
+        {/* Download format selector */}
+        <div className="space-y-2">
+          <Label className="text-sm">Download format</Label>
+          <div className="grid grid-cols-2 gap-2">
+            {(
+              [
+                {
+                  id: "docx",
+                  title: "Word",
+                  ext: ".docx",
+                  sub: "Editable · faster",
+                  icon: FileText,
+                },
+                {
+                  id: "pdf",
+                  title: "PDF",
+                  ext: ".pdf",
+                  sub: "Ready to send",
+                  icon: FileType,
+                },
+              ] as const
+            ).map((opt) => {
+              const active = outputFormat === opt.id;
+              const Icon = opt.icon;
+              return (
+                <button
+                  key={opt.id}
+                  type="button"
+                  onClick={() => onFormatChange(opt.id)}
+                  disabled={busy}
+                  className={cn(
+                    "flex items-center gap-3 rounded-lg border p-3 text-left transition-all",
+                    active
+                      ? "border-primary bg-primary/5 ring-2 ring-primary/30"
+                      : "hover:bg-muted/50",
+                    busy && "opacity-60",
+                  )}
+                >
+                  <div
+                    className={cn(
+                      "flex size-9 shrink-0 items-center justify-center rounded-md",
+                      active
+                        ? "bg-primary text-primary-foreground"
+                        : "bg-muted text-muted-foreground",
+                    )}
+                  >
+                    <Icon className="size-4" />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center gap-1.5 text-sm font-medium">
+                      {opt.title}
+                      <span className="font-mono text-xs font-normal text-muted-foreground">
+                        {opt.ext}
+                      </span>
+                    </div>
+                    <div className="text-xs text-muted-foreground">{opt.sub}</div>
+                  </div>
+                  {active && (
+                    <Check className="size-4 shrink-0 text-primary" />
+                  )}
+                </button>
+              );
+            })}
+          </div>
+          {outputFormat === "pdf" && (
+            <p className="text-xs text-muted-foreground">
+              PDFs are rendered in your browser, so generating takes a bit
+              longer and the text won't be selectable.
+            </p>
+          )}
+        </div>
+
         <div className="text-xs text-muted-foreground">
           Preview of the contract with data from row {previewRowIdx + 2} (first row with all variables filled).
-          {outputFormat === "pdf" && " Files will download as PDF."}
         </div>
 
         {/* Values table — shows exactly what each {{variable}} will receive */}
