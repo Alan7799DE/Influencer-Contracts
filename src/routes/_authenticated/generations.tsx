@@ -37,10 +37,11 @@ import { normalizeVariableType, type VariableType } from "@/lib/docx-parser";
 import {
   buildSheetFromRaw,
   formatValue,
-  parseXLSXRaw,
+  parseWorkbook,
   renderDocx,
   sanitizeFilename,
   type ParsedSheet,
+  type WorkbookData,
 } from "@/lib/template-data";
 
 export const Route = createFileRoute("/_authenticated/generations")({
@@ -81,6 +82,9 @@ function GenerationsPage() {
   const [fileName, setFileName] = useState<string>("");
   const [rawRows, setRawRows] = useState<string[][] | null>(null);
   const [headerRowIdx, setHeaderRowIdx] = useState<number>(0);
+  const [sheetNames, setSheetNames] = useState<string[]>([]);
+  const [allSheets, setAllSheets] = useState<Record<string, string[][]>>({});
+  const [selectedSheet, setSelectedSheet] = useState<string>("");
   const [mapping, setMapping] = useState<Record<string, string>>({});
   const [sources, setSources] = useState<Record<string, "column" | "fixed">>({});
   const [constants, setConstants] = useState<Record<string, string>>({});
@@ -111,6 +115,9 @@ function GenerationsPage() {
     setFileName("");
     setRawRows(null);
     setHeaderRowIdx(0);
+    setSheetNames([]);
+    setAllSheets({});
+    setSelectedSheet("");
     setMapping({});
     setSources({});
     setConstants({});
@@ -129,6 +136,38 @@ function GenerationsPage() {
         setNameColumn(s.headers[0] ?? "");
       }
     }
+  }
+
+  function firstNonEmptyRow(raw: string[][]): number {
+    const idx = raw.findIndex((r) =>
+      r.some((v) => String(v ?? "").trim() !== ""),
+    );
+    return idx >= 0 ? idx : 0;
+  }
+
+  // Switch to another tab of the workbook: re-detect the header row and reset
+  // the downstream mapping (columns differ between sheets).
+  function applySheet(
+    sheets: Record<string, string[][]>,
+    sheetName: string,
+    name: string,
+  ) {
+    const raw = sheets[sheetName] ?? [];
+    setSelectedSheet(sheetName);
+    setMapping({});
+    setNameColumn("");
+    applyHeader(raw, firstNonEmptyRow(raw), name);
+  }
+
+  function loadWorkbook(wb: WorkbookData, name: string) {
+    setSheetNames(wb.sheetNames);
+    setAllSheets(wb.sheets);
+    // Default to the first tab that actually has data.
+    const withData =
+      wb.sheetNames.find((n) =>
+        wb.sheets[n].some((r) => r.some((v) => String(v ?? "").trim() !== "")),
+      ) ?? wb.sheetNames[0];
+    applySheet(wb.sheets, withData, name);
   }
 
   return (
@@ -166,6 +205,10 @@ function GenerationsPage() {
           fileName={fileName}
           rawRows={rawRows}
           headerRowIdx={headerRowIdx}
+          sheetNames={sheetNames}
+          selectedSheet={selectedSheet}
+          onWorkbook={loadWorkbook}
+          onSheetChange={(name) => applySheet(allSheets, name, fileName)}
           onParsed={applyHeader}
         />
       )}
@@ -415,12 +458,20 @@ function StepData({
   fileName,
   rawRows,
   headerRowIdx,
+  sheetNames,
+  selectedSheet,
+  onWorkbook,
+  onSheetChange,
   onParsed,
 }: {
   sheet: ParsedSheet | null;
   fileName: string;
   rawRows: string[][] | null;
   headerRowIdx: number;
+  sheetNames: string[];
+  selectedSheet: string;
+  onWorkbook: (wb: WorkbookData, fileName: string) => void;
+  onSheetChange: (sheetName: string) => void;
   onParsed: (raw: string[][], headerRowIdx: number, fileName: string) => void;
 }) {
   const inputRef = useRef<HTMLInputElement>(null);
@@ -433,15 +484,13 @@ function StepData({
     try {
       if (!lower.endsWith(".xlsx") && !lower.endsWith(".xls"))
         throw new Error("Upload an .xlsx file");
-      const raw = await parseXLSXRaw(file);
-      if (raw.length === 0) throw new Error("The file is empty");
-      // Default header row = first non-empty row
-      const firstNonEmpty = raw.findIndex((r) =>
-        r.some((v) => String(v ?? "").trim() !== ""),
+      const wb = await parseWorkbook(file);
+      onWorkbook(wb, file.name);
+      toast.success(
+        wb.sheetNames.length > 1
+          ? `${wb.sheetNames.length} sheets found — pick one below`
+          : "File loaded",
       );
-      const initialHeader = firstNonEmpty >= 0 ? firstNonEmpty : 0;
-      onParsed(raw, initialHeader, file.name);
-      toast.success(`${raw.length} rows loaded`);
     } catch (err) {
       const msg = err instanceof Error ? err.message : "Error reading the file";
       toast.error(msg);
@@ -506,6 +555,35 @@ function StepData({
                 Change
               </Button>
             </div>
+
+            {sheetNames.length > 1 && (
+              <div className="space-y-1.5">
+                <div className="text-xs font-medium text-muted-foreground">
+                  This file has several sheets — choose which one to use:
+                </div>
+                <div className="flex flex-wrap gap-1.5">
+                  {sheetNames.map((name) => {
+                    const active = name === selectedSheet;
+                    return (
+                      <button
+                        key={name}
+                        type="button"
+                        title={name}
+                        onClick={() => onSheetChange(name)}
+                        className={cn(
+                          "max-w-[220px] truncate rounded-md border px-3 py-1.5 text-xs font-medium transition-colors",
+                          active
+                            ? "border-primary bg-primary/10 text-primary"
+                            : "bg-muted/40 text-muted-foreground hover:bg-muted",
+                        )}
+                      >
+                        {name}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
 
             <div className="flex items-start gap-2.5 rounded-lg border border-primary/20 bg-primary/5 px-3 py-2.5">
               <Info className="size-4 text-primary shrink-0 mt-0.5" />

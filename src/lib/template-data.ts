@@ -7,12 +7,13 @@ export type ParsedSheet = {
   rows: Array<Record<string, string>>;
 };
 
-export async function parseXLSXRaw(file: File): Promise<string[][]> {
-  const buf = await file.arrayBuffer();
-  const wb = XLSX.read(buf, { type: "array", cellDates: false });
-  const sheetName = wb.SheetNames[0];
-  if (!sheetName) throw new Error("The Excel file has no sheets");
-  const sheet = wb.Sheets[sheetName];
+/** Raw rows for every sheet (tab) in the workbook, keyed by sheet name. */
+export type WorkbookData = {
+  sheetNames: string[];
+  sheets: Record<string, string[][]>;
+};
+
+function sheetToRaw(sheet: XLSX.WorkSheet): string[][] {
   const raw = XLSX.utils.sheet_to_json<Array<unknown>>(sheet, {
     header: 1,
     raw: true,
@@ -24,6 +25,22 @@ export async function parseXLSXRaw(file: File): Promise<string[][]> {
     for (let i = 0; i < maxCols; i++) out.push(stringifyCell(row?.[i]));
     return out;
   });
+}
+
+/** Read every sheet of the workbook so the user can pick which tab to use. */
+export async function parseWorkbook(file: File): Promise<WorkbookData> {
+  const buf = await file.arrayBuffer();
+  const wb = XLSX.read(buf, { type: "array", cellDates: false });
+  if (wb.SheetNames.length === 0)
+    throw new Error("The Excel file has no sheets");
+  const sheets: Record<string, string[][]> = {};
+  for (const name of wb.SheetNames) sheets[name] = sheetToRaw(wb.Sheets[name]);
+  return { sheetNames: wb.SheetNames, sheets };
+}
+
+export async function parseXLSXRaw(file: File): Promise<string[][]> {
+  const { sheetNames, sheets } = await parseWorkbook(file);
+  return sheets[sheetNames[0]];
 }
 
 export function buildSheetFromRaw(
