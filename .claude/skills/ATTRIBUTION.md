@@ -26,6 +26,14 @@ Skills imported from Superpowers:
 The `SessionStart` hook (`.claude/hooks/session-start`, wired in
 `.claude/settings.json`) is adapted from Superpowers' own session-start hook.
 
+## frontend-design
+
+The `frontend-design` skill comes from Anthropic's official Claude Code plugins,
+licensed under Apache 2.0.
+
+- Author: Anthropic
+- License: see `FRONTEND-DESIGN-LICENSE` (Apache License 2.0)
+
 Skills you add yourself under `.claude/skills/<name>/SKILL.md` are covered by
 the same automatic behaviour — the hook tells Claude to check *any* applicable
 skill, so no hook changes are needed for new skills.
