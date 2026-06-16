@@ -34,14 +34,16 @@ licensed under Apache 2.0.
 - Author: Anthropic
 - License: see `FRONTEND-DESIGN-LICENSE` (Apache License 2.0)
 
-## architecture & system-design
+## Engineering skills (Anthropic)
 
-The `architecture` and `system-design` skills come from Anthropic's engineering
-skills for Claude Code.
+These come from Anthropic's engineering skills for Claude Code:
 
-- Author: Anthropic
 - `architecture` — create/evaluate Architecture Decision Records (ADRs).
 - `system-design` — design systems, services, APIs, data models, boundaries.
+- `code-review` — review code changes for security, performance, correctness.
+- `testing-strategy` — design test strategies and test plans.
+- `deploy-checklist` — pre-deployment verification (migrations, flags, rollback).
+- `documentation` — write and maintain technical documentation.
 
 Skills you add yourself under `.claude/skills/<name>/SKILL.md` are covered by
 the same automatic behaviour — the hook tells Claude to check *any* applicable
