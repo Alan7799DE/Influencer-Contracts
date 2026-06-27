@@ -65,6 +65,14 @@ export const Route = createFileRoute("/influencer-contract-templates")({
                 text: "The legal content comes from your own template. Easy Contracts only personalizes the placeholders — it does not alter clauses. Always have your template reviewed by a lawyer in your jurisdiction.",
               },
             },
+            {
+              "@type": "Question",
+              name: "Do you store my influencer data?",
+              acceptedAnswer: {
+                "@type": "Answer",
+                text: "Your template and data are tied to your account so you can re-run a campaign later. You can delete them at any time.",
+              },
+            },
           ],
         }),
       },
