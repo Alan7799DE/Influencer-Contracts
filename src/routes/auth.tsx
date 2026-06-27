@@ -15,6 +15,7 @@ export const Route = createFileRoute("/auth")({
   head: () => ({
     meta: [
       { title: "Sign in · Easy Contracts" },
+      { name: "robots", content: "noindex, follow" },
       { name: "description", content: "Sign in or create your Easy Contracts account to generate personalized contracts in bulk from a template and an Excel file." },
       { property: "og:title", content: "Sign in · Easy Contracts" },
       { property: "og:description", content: "Sign in or create your Easy Contracts account to generate personalized contracts in bulk." },

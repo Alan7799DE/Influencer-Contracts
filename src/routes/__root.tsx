@@ -113,6 +113,32 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
         href: "https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap",
       },
     ],
+    scripts: [
+      {
+        type: "application/ld+json",
+        children: JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "Organization",
+          name: "Easy Contracts",
+          url: "https://easycontracts.site",
+          logo: `https://easycontracts.site${faviconAsset.url}`,
+        }),
+      },
+      {
+        type: "application/ld+json",
+        children: JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "SoftwareApplication",
+          name: "Easy Contracts",
+          applicationCategory: "BusinessApplication",
+          operatingSystem: "Web",
+          url: "https://easycontracts.site",
+          description:
+            "Generate personalized influencer marketing contracts in bulk from a Word template and an Excel file.",
+          offers: { "@type": "Offer", price: "0", priceCurrency: "USD" },
+        }),
+      },
+    ],
   }),
   shellComponent: RootShell,
   component: RootComponent,
