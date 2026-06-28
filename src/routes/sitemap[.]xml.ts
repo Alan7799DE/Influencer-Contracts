@@ -17,10 +17,13 @@ export const Route = createFileRoute("/sitemap.xml")({
   server: {
     handlers: {
       GET: async () => {
-        // /auth is an indexable utility page with thin content; it is kept out of
-        // the sitemap and marked noindex so it doesn't dilute crawl budget.
+        // "/" is now the public, server-rendered marketing homepage (was a
+        // redirect-only route until the indexable-homepage change), so it is the
+        // top-priority indexable URL. /auth stays out of the sitemap and is
+        // marked noindex (thin utility page).
         const entries: SitemapEntry[] = [
-          { path: "/influencer-contract-templates", changefreq: "monthly", priority: "1.0", lastmod: LAST_MODIFIED },
+          { path: "/", changefreq: "weekly", priority: "1.0", lastmod: LAST_MODIFIED },
+          { path: "/influencer-contract-templates", changefreq: "monthly", priority: "0.9", lastmod: LAST_MODIFIED },
         ];
 
         const urls = entries.map((e) =>
