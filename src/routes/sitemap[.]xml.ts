@@ -24,6 +24,8 @@ export const Route = createFileRoute("/sitemap.xml")({
         const entries: SitemapEntry[] = [
           { path: "/", changefreq: "weekly", priority: "1.0", lastmod: LAST_MODIFIED },
           { path: "/influencer-contract-templates", changefreq: "monthly", priority: "0.9", lastmod: LAST_MODIFIED },
+          { path: "/use-cases/influencer-contracts-for-agencies", changefreq: "monthly", priority: "0.8", lastmod: LAST_MODIFIED },
+          { path: "/guides/generate-contracts-from-excel", changefreq: "monthly", priority: "0.7", lastmod: LAST_MODIFIED },
         ];
 
         const urls = entries.map((e) =>

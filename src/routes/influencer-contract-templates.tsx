@@ -277,6 +277,16 @@ function InfluencerContractTemplatesPage() {
             </Faq>
           </div>
         </section>
+
+        <section className="border-t pt-8 text-muted-foreground">
+          <p>
+            Running campaigns at scale? See{" "}
+            <Link to="/use-cases/influencer-contracts-for-agencies" className="font-medium text-primary underline-offset-4 hover:underline">
+              influencer contracts for agencies
+            </Link>
+            .
+          </p>
+        </section>
       </article>
 
       <footer className="border-t">
