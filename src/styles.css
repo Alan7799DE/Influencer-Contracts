@@ -136,6 +136,152 @@
   }
 }
 
+/* ============================================================
+   Landing page (scoped to `.landing`).
+   Overrides the shadcn tokens ONLY inside this scope so the
+   marketing homepage gets its own editorial look without
+   touching the authenticated app's design system.
+   ============================================================ */
+.landing {
+  /* Warm "paper + ink" palette, scoped */
+  --background: oklch(0.972 0.012 88);
+  --foreground: oklch(0.24 0.026 66);
+  --card: oklch(0.995 0.005 88);
+  --card-foreground: oklch(0.24 0.026 66);
+  --popover: oklch(0.995 0.005 88);
+  --popover-foreground: oklch(0.24 0.026 66);
+  --primary: oklch(0.5 0.2 264);
+  --primary-foreground: oklch(0.98 0.01 88);
+  --secondary: oklch(0.93 0.018 86);
+  --secondary-foreground: oklch(0.29 0.03 66);
+  --muted: oklch(0.93 0.016 86);
+  --muted-foreground: oklch(0.47 0.022 70);
+  --accent: oklch(0.86 0.135 78);
+  --accent-foreground: oklch(0.33 0.07 70);
+  --border: oklch(0.88 0.014 84);
+  --input: oklch(0.88 0.014 84);
+  --ring: oklch(0.5 0.2 264);
+  --radius: 0.5rem;
+
+  --paper: var(--background);
+  --ink: var(--foreground);
+  --line: var(--border);
+  --mark: var(--accent);
+
+  --font-display: "Fraunces", Georgia, "Times New Roman", serif;
+  --font-body: "Hanken Grotesk", ui-sans-serif, system-ui, -apple-system, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+
+  font-family: var(--font-body);
+  font-optical-sizing: auto;
+  background-color: var(--paper);
+  color: var(--ink);
+  /* faint paper grain */
+  background-image: radial-gradient(oklch(0.45 0.02 70 / 0.045) 1px, transparent 1.2px);
+  background-size: 24px 24px;
+}
+
+.landing h1,
+.landing h2,
+.landing h3,
+.landing .font-display {
+  font-family: var(--font-display);
+  letter-spacing: -0.02em;
+  font-weight: 600;
+}
+
+.landing .mono {
+  font-family: var(--font-mono);
+}
+
+.landing .eyebrow {
+  font-family: var(--font-mono);
+  text-transform: uppercase;
+  letter-spacing: 0.2em;
+  font-size: 0.7rem;
+  font-weight: 500;
+}
+
+/* highlighter-marked {{placeholder}} tokens */
+.landing .tok {
+  font-family: var(--font-mono);
+  font-size: 0.88em;
+  white-space: nowrap;
+  padding: 0.05em 0.28em;
+  border-radius: 3px;
+  color: oklch(0.3 0.05 70);
+  background: linear-gradient(transparent 52%, oklch(0.86 0.135 78 / 0.85) 52%);
+}
+
+.landing ::selection {
+  background: var(--mark);
+  color: var(--ink);
+}
+
+/* document cards used in the hero transformation visual */
+.landing .doc {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  box-shadow:
+    0 1px 0 oklch(1 0 0 / 0.6) inset,
+    0 24px 50px -28px oklch(0.3 0.06 264 / 0.4);
+}
+
+.landing .hero-glow {
+  background:
+    radial-gradient(55% 55% at 72% 28%, oklch(0.5 0.2 264 / 0.13), transparent 70%),
+    radial-gradient(45% 45% at 25% 80%, oklch(0.86 0.135 78 / 0.16), transparent 70%);
+}
+
+/* deep "ink" contrast panel */
+.landing .ink-panel {
+  --foreground: oklch(0.96 0.01 88);
+  --muted-foreground: oklch(0.78 0.02 264);
+  --border: oklch(1 0 0 / 0.14);
+  --primary: oklch(0.72 0.17 264);
+  --primary-foreground: oklch(0.18 0.03 264);
+  background: oklch(0.23 0.028 264);
+  color: var(--foreground);
+}
+
+/* dotted connectors between steps */
+.landing .step-rule {
+  background-image: linear-gradient(to right, var(--line) 60%, transparent 0);
+  background-size: 10px 2px;
+  background-repeat: repeat-x;
+}
+
+/* entrance + idle motion */
+@keyframes landing-rise {
+  from { opacity: 0; transform: translateY(16px); }
+  to { opacity: 1; transform: none; }
+}
+@keyframes landing-float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-7px); }
+}
+.landing .reveal {
+  opacity: 0;
+  animation: landing-rise 0.7s cubic-bezier(0.22, 0.68, 0.2, 1) forwards;
+}
+.landing .float {
+  animation: landing-float 6.5s ease-in-out infinite;
+}
+.landing .lift {
+  transition: transform 0.25s cubic-bezier(0.22, 0.68, 0.2, 1), box-shadow 0.25s ease;
+}
+.landing .lift:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 28px 56px -28px oklch(0.3 0.06 264 / 0.5);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .landing .reveal { opacity: 1; animation: none; }
+  .landing .float,
+  .landing .lift { animation: none; transition: none; }
+}
+
 /* docx-preview container styling */
 .docx-wrapper {
   background: transparent !important;
