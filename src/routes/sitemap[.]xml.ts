@@ -11,7 +11,7 @@ interface SitemapEntry {
 }
 
 // Bump when the public, indexable content meaningfully changes.
-const LAST_MODIFIED = "2026-06-27";
+const LAST_MODIFIED = "2026-06-29";
 
 export const Route = createFileRoute("/sitemap.xml")({
   server: {
