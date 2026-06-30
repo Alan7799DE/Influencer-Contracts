@@ -12,6 +12,8 @@ import {
   ArrowRight,
   Check,
   FolderArchive,
+  BookOpen,
+  Building2,
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -38,6 +40,32 @@ const FAQS = [
     a: "No. Keep your existing Word document and clauses — just replace the parts that change per contract (names, fees, dates) with {{placeholders}}. Easy Contracts never alters your legal text.",
   },
 ];
+
+// Internal links from the homepage into the topic cluster — surfaced as
+// cards (Guides & resources section) and in the footer.
+const RESOURCES = [
+  {
+    to: "/guides/generate-contracts-from-excel",
+    label: "Guide",
+    title: "Generate contracts from Excel",
+    body: "Step by step: turn a spreadsheet and a Word template into hundreds of finished contracts.",
+    icon: <BookOpen className="size-5" />,
+  },
+  {
+    to: "/use-cases/influencer-contracts-for-agencies",
+    label: "Use case",
+    title: "Influencer contracts for agencies",
+    body: "Generate a personalized agreement for every creator on your roster in one batch.",
+    icon: <Building2 className="size-5" />,
+  },
+  {
+    to: "/influencer-contract-templates",
+    label: "Templates",
+    title: "Influencer contract templates",
+    body: "What to include in an influencer agreement and how to personalize it at scale.",
+    icon: <FileText className="size-5" />,
+  },
+] as const;
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -294,6 +322,33 @@ function HomePage() {
         </div>
       </section>
 
+      {/* ───────────────────────── Guides & resources ───────────────────────── */}
+      <section className="border-t border-border">
+        <div className="mx-auto max-w-6xl px-6 py-24">
+          <SectionHeading eyebrow="Learn more" title="Guides & resources" />
+          <div className="mt-14 grid gap-5 md:grid-cols-3">
+            {RESOURCES.map((r) => (
+              <Link
+                key={r.to}
+                to={r.to}
+                className="lift group flex flex-col rounded-2xl border border-border bg-card p-7"
+              >
+                <span className="flex size-11 items-center justify-center rounded-xl bg-primary/10 text-primary">
+                  {r.icon}
+                </span>
+                <p className="eyebrow mt-6 text-muted-foreground">{r.label}</p>
+                <h3 className="mt-2 text-xl font-semibold leading-snug">{r.title}</h3>
+                <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{r.body}</p>
+                <span className="mt-5 inline-flex items-center gap-1.5 text-sm font-medium text-primary">
+                  Read more
+                  <ArrowRight className="size-4 transition-transform group-hover:translate-x-0.5" />
+                </span>
+              </Link>
+            ))}
+          </div>
+        </div>
+      </section>
+
       {/* ───────────────────────── CTA ───────────────────────── */}
       <section className="mx-auto max-w-6xl px-6 pb-24">
         <div className="relative overflow-hidden rounded-3xl border border-border bg-card px-8 py-16 text-center">
@@ -333,17 +388,32 @@ function HomePage() {
 
       {/* ───────────────────────── Footer ───────────────────────── */}
       <footer className="border-t border-border bg-card/60">
-        <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-4 px-6 py-8 text-sm text-muted-foreground">
-          <div className="flex items-center gap-2">
-            <span className="grid size-6 place-items-center rounded-md bg-primary text-primary-foreground">
-              <FileText className="size-3.5" />
-            </span>
-            <span className="font-display font-semibold text-foreground">Easy Contracts</span>
-            <span className="ml-2">© {new Date().getFullYear()}</span>
+        <div className="mx-auto max-w-6xl px-6 py-12">
+          <div className="flex flex-col gap-8 md:flex-row md:items-start md:justify-between">
+            <div className="flex items-center gap-2">
+              <span className="grid size-7 place-items-center rounded-md bg-primary text-primary-foreground">
+                <FileText className="size-4" />
+              </span>
+              <span className="font-display text-lg font-semibold text-foreground">Easy Contracts</span>
+            </div>
+            <nav className="grid grid-cols-2 gap-x-12 gap-y-2 text-sm sm:grid-cols-3">
+              {RESOURCES.map((r) => (
+                <Link
+                  key={r.to}
+                  to={r.to}
+                  className="text-muted-foreground transition-colors hover:text-foreground"
+                >
+                  {r.title}
+                </Link>
+              ))}
+              <Link to="/auth" className="text-muted-foreground transition-colors hover:text-foreground">
+                Sign in
+              </Link>
+            </nav>
           </div>
-          <Link to="/auth" className="font-medium transition-colors hover:text-foreground">
-            Sign in
-          </Link>
+          <div className="mt-10 border-t border-border pt-6 text-sm text-muted-foreground">
+            © {new Date().getFullYear()} Easy Contracts
+          </div>
         </div>
       </footer>
     </main>
