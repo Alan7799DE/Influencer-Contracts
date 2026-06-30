@@ -2,6 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { FileText, Upload, Wand2, Download, CheckCircle2, Clock, Users, ShieldCheck } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
+import { RelatedArticles } from "@/lib/cluster";
 
 const CANONICAL = "https://easycontracts.site/influencer-contract-templates";
 const TITLE = "Influencer Contract Template · Generate Hundreds in Minutes";
@@ -288,6 +289,8 @@ function InfluencerContractTemplatesPage() {
           </p>
         </section>
       </article>
+
+      <RelatedArticles currentPath="/influencer-contract-templates" />
 
       <footer className="border-t">
         <div className="mx-auto flex max-w-5xl flex-wrap items-center justify-between gap-3 px-6 py-6 text-sm text-muted-foreground">

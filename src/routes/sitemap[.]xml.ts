@@ -11,7 +11,7 @@ interface SitemapEntry {
 }
 
 // Bump when the public, indexable content meaningfully changes.
-const LAST_MODIFIED = "2026-06-29";
+const LAST_MODIFIED = "2026-06-30";
 
 export const Route = createFileRoute("/sitemap.xml")({
   server: {
@@ -26,6 +26,11 @@ export const Route = createFileRoute("/sitemap.xml")({
           { path: "/influencer-contract-templates", changefreq: "monthly", priority: "0.9", lastmod: LAST_MODIFIED },
           { path: "/use-cases/influencer-contracts-for-agencies", changefreq: "monthly", priority: "0.8", lastmod: LAST_MODIFIED },
           { path: "/guides/generate-contracts-from-excel", changefreq: "monthly", priority: "0.7", lastmod: LAST_MODIFIED },
+          { path: "/guides/what-to-include-in-an-influencer-contract", changefreq: "monthly", priority: "0.7", lastmod: LAST_MODIFIED },
+          { path: "/guides/add-placeholders-to-word-template", changefreq: "monthly", priority: "0.7", lastmod: LAST_MODIFIED },
+          { path: "/guides/personalize-contracts-automatically", changefreq: "monthly", priority: "0.7", lastmod: LAST_MODIFIED },
+          { path: "/guides/generate-documents-in-bulk", changefreq: "monthly", priority: "0.7", lastmod: LAST_MODIFIED },
+          { path: "/compare/easy-contracts-vs-docupilot-documint-portant", changefreq: "monthly", priority: "0.6", lastmod: LAST_MODIFIED },
         ];
 
         const urls = entries.map((e) =>
