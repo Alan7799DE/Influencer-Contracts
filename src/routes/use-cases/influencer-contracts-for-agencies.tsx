@@ -3,6 +3,7 @@ import { Clock, Users, ShieldCheck } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { MarketingHeader, MarketingFooter, Stat, Bullet, Faq } from "@/components/marketing";
+import { RelatedArticles } from "@/lib/cluster";
 
 const CANONICAL = "https://easycontracts.site/use-cases/influencer-contracts-for-agencies";
 const TITLE = "Influencer Contracts for Agencies · Generate Them in Bulk";
@@ -207,6 +208,7 @@ function AgenciesPage() {
         </section>
       </article>
 
+      <RelatedArticles currentPath="/use-cases/influencer-contracts-for-agencies" />
       <MarketingFooter />
     </main>
   );

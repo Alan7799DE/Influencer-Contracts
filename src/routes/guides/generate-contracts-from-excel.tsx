@@ -3,11 +3,12 @@ import { FileText, Table, Wand2, Download } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { MarketingHeader, MarketingFooter, Step, Bullet, Faq } from "@/components/marketing";
+import { RelatedArticles } from "@/lib/cluster";
 
 const CANONICAL = "https://easycontracts.site/guides/generate-contracts-from-excel";
 const TITLE = "How to Generate Contracts from an Excel Sheet (Step by Step)";
 const DESCRIPTION =
-  "Turn a spreadsheet into hundreds of finished contracts. A step-by-step guide to merging an Excel file with a Word template — without mail-merge headaches.";
+  "Turn a spreadsheet into hundreds of finished contracts. A step-by-step guide to combining an Excel file with a Word template — without editing documents one at a time.";
 
 const FAQS = [
   {
@@ -99,7 +100,7 @@ function GuidePage() {
           <ul className="mt-6 space-y-2 text-muted-foreground">
             <Bullet>A contract template in Microsoft Word (.docx) — your real document, clauses and all.</Bullet>
             <Bullet>A spreadsheet (.xlsx or .csv) with one row per contract and a column for each detail that changes.</Bullet>
-            <Bullet>A way to merge them — we cover Word's mail merge and a purpose-built generator, and where each fits.</Bullet>
+            <Bullet>A way to combine them — we compare doing it by hand with a purpose-built generator, and where each fits.</Bullet>
           </ul>
         </section>
 
@@ -139,14 +140,14 @@ function GuidePage() {
         </section>
 
         <section>
-          <h2 className="text-2xl font-semibold tracking-tight">Step 3 — Merge the sheet into the template</h2>
+          <h2 className="text-2xl font-semibold tracking-tight">Step 3 — Combine the sheet with the template</h2>
           <p className="mt-4 text-muted-foreground">You have two realistic options.</p>
           <ol className="mt-6 space-y-6">
             <Step
               icon={<Table className="size-5" />}
               number={1}
-              title="Word mail merge"
-              body="Word can pull an Excel sheet into a template, but it is built for letters, not contracts. It outputs one long merged document with every contract stacked together, can mangle formatting on complex layouts, and getting a separate named file per row is fiddly."
+              title="Doing it by hand"
+              body="Open the template, save a copy, and type in each value from the spreadsheet — row by row. Fine for two or three contracts, but it gets slow fast and one wrong paste can put the wrong fee or name in a signed document."
             />
             <Step
               icon={<Wand2 className="size-5" />}
@@ -158,20 +159,21 @@ function GuidePage() {
         </section>
 
         <section>
-          <h2 className="text-2xl font-semibold tracking-tight">Why not just use mail merge?</h2>
+          <h2 className="text-2xl font-semibold tracking-tight">Why doing it by hand doesn't scale</h2>
           <p className="mt-4 text-muted-foreground">
-            Mail merge is fine for a batch of identical letters. It struggles with contracts because:
+            Editing one document at a time is fine for a couple of contracts. In batches it falls
+            apart because:
           </p>
           <ul className="mt-6 space-y-2 text-muted-foreground">
-            <Bullet>It produces a single merged file, not one document per person.</Bullet>
-            <Bullet>It can break tables, headers, and styled clauses.</Bullet>
-            <Bullet>Naming and exporting each contract separately is manual work.</Bullet>
-            <Bullet>Re-running it next time means redoing the setup.</Bullet>
+            <Bullet>Every contract is retyped or copy-pasted — slow, and error-prone.</Bullet>
+            <Bullet>A single wrong paste can reach a signed document.</Bullet>
+            <Bullet>Naming and saving each file separately is manual work.</Bullet>
+            <Bullet>Next time, you start the whole process over.</Bullet>
           </ul>
           <p className="mt-6 text-muted-foreground">
-            If you only ever make a couple of documents, mail merge is enough. If you generate
-            contracts in batches and need clean, individually named files, a dedicated generator
-            saves the cleanup.
+            If you only ever make a couple of documents, by hand is enough. If you generate contracts
+            in batches and need clean, individually named files, a dedicated generator saves the
+            cleanup.
           </p>
         </section>
 
@@ -207,21 +209,9 @@ function GuidePage() {
           </div>
         </section>
 
-        <section className="border-t pt-8 text-muted-foreground">
-          <p>
-            Running campaigns with many creators? See{" "}
-            <Link to="/use-cases/influencer-contracts-for-agencies" className="font-medium text-primary underline-offset-4 hover:underline">
-              influencer contracts for agencies
-            </Link>
-            . For an influencer-specific walkthrough, see{" "}
-            <Link to="/influencer-contract-templates" className="font-medium text-primary underline-offset-4 hover:underline">
-              influencer contract templates
-            </Link>
-            .
-          </p>
-        </section>
       </article>
 
+      <RelatedArticles currentPath="/guides/generate-contracts-from-excel" />
       <MarketingFooter />
     </main>
   );
