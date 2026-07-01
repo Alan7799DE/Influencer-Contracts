@@ -4,6 +4,7 @@ import { Clock, Users, ShieldCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { MarketingHeader, MarketingFooter, Stat, Bullet, Faq } from "@/components/marketing";
 import { RelatedArticles } from "@/lib/cluster";
+import { articleSchema } from "@/lib/seo";
 
 const CANONICAL = "https://easycontracts.site/use-cases/influencer-contracts-for-agencies";
 const TITLE = "Influencer Contracts for Agencies · Generate Them in Bulk";
@@ -42,15 +43,9 @@ export const Route = createFileRoute("/use-cases/influencer-contracts-for-agenci
     scripts: [
       {
         type: "application/ld+json",
-        children: JSON.stringify({
-          "@context": "https://schema.org",
-          "@type": "Article",
-          headline: TITLE,
-          description: DESCRIPTION,
-          author: { "@type": "Organization", name: "Easy Contracts" },
-          publisher: { "@type": "Organization", name: "Easy Contracts" },
-          mainEntityOfPage: CANONICAL,
-        }),
+        children: JSON.stringify(
+          articleSchema({ headline: TITLE, description: DESCRIPTION, canonical: CANONICAL }),
+        ),
       },
       {
         type: "application/ld+json",

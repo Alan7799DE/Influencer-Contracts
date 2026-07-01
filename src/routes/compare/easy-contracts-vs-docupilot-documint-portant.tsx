@@ -3,6 +3,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { Button } from "@/components/ui/button";
 import { MarketingHeader, MarketingFooter, Bullet, Faq } from "@/components/marketing";
 import { RelatedArticles } from "@/lib/cluster";
+import { articleSchema } from "@/lib/seo";
 
 const CANONICAL =
   "https://easycontracts.site/compare/easy-contracts-vs-docupilot-documint-portant";
@@ -42,15 +43,9 @@ export const Route = createFileRoute("/compare/easy-contracts-vs-docupilot-docum
     scripts: [
       {
         type: "application/ld+json",
-        children: JSON.stringify({
-          "@context": "https://schema.org",
-          "@type": "Article",
-          headline: TITLE,
-          description: DESCRIPTION,
-          author: { "@type": "Organization", name: "Easy Contracts" },
-          publisher: { "@type": "Organization", name: "Easy Contracts" },
-          mainEntityOfPage: CANONICAL,
-        }),
+        children: JSON.stringify(
+          articleSchema({ headline: TITLE, description: DESCRIPTION, canonical: CANONICAL }),
+        ),
       },
       {
         type: "application/ld+json",
@@ -77,7 +72,7 @@ function Page() {
       <section className="mx-auto max-w-3xl px-6 py-16">
         <p className="text-sm font-medium text-primary">Comparison · 6 min read</p>
         <h1 className="mt-3 text-4xl font-bold tracking-tight sm:text-5xl">
-          Easy Contracts vs. Docupilot, Documint &amp; Portant
+          How Easy Contracts compares to Docupilot, Documint &amp; Portant
         </h1>
         <p className="mt-4 text-lg text-muted-foreground">
           All four tools exist to do the same thing in spirit — produce many documents from a

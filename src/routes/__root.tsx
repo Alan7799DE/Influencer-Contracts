@@ -126,21 +126,10 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
           "@type": "Organization",
           name: "Easy Contracts",
           url: "https://easycontracts.site",
-          logo: `https://easycontracts.site${faviconAsset.url}`,
-        }),
-      },
-      {
-        type: "application/ld+json",
-        children: JSON.stringify({
-          "@context": "https://schema.org",
-          "@type": "SoftwareApplication",
-          name: "Easy Contracts",
-          applicationCategory: "BusinessApplication",
-          operatingSystem: "Web",
-          url: "https://easycontracts.site",
-          description:
-            "Generate personalized influencer marketing contracts in bulk from a Word template and an Excel file.",
-          offers: { "@type": "Offer", price: "0", priceCurrency: "USD" },
+          logo: {
+            "@type": "ImageObject",
+            url: `https://easycontracts.site${faviconAsset.url}`,
+          },
         }),
       },
     ],

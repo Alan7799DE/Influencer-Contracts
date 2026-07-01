@@ -3,6 +3,7 @@ import { FileText, Upload, Wand2, Download, CheckCircle2, Clock, Users, ShieldCh
 
 import { Button } from "@/components/ui/button";
 import { RelatedArticles } from "@/lib/cluster";
+import { articleSchema } from "@/lib/seo";
 
 const CANONICAL = "https://easycontracts.site/influencer-contract-templates";
 const TITLE = "Influencer Contract Template · Generate Hundreds in Minutes";
@@ -26,15 +27,9 @@ export const Route = createFileRoute("/influencer-contract-templates")({
     scripts: [
       {
         type: "application/ld+json",
-        children: JSON.stringify({
-          "@context": "https://schema.org",
-          "@type": "Article",
-          headline: TITLE,
-          description: DESCRIPTION,
-          author: { "@type": "Organization", name: "Easy Contracts" },
-          publisher: { "@type": "Organization", name: "Easy Contracts" },
-          mainEntityOfPage: CANONICAL,
-        }),
+        children: JSON.stringify(
+          articleSchema({ headline: TITLE, description: DESCRIPTION, canonical: CANONICAL }),
+        ),
       },
       {
         type: "application/ld+json",
