@@ -4,6 +4,7 @@ import { FileText, Table, Wand2, Download } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { MarketingHeader, MarketingFooter, Step, Bullet, Faq } from "@/components/marketing";
 import { RelatedArticles } from "@/lib/cluster";
+import { articleSchema } from "@/lib/seo";
 
 const CANONICAL = "https://easycontracts.site/guides/generate-contracts-from-excel";
 const TITLE = "How to Generate Contracts from an Excel Sheet (Step by Step)";
@@ -42,15 +43,9 @@ export const Route = createFileRoute("/guides/generate-contracts-from-excel")({
     scripts: [
       {
         type: "application/ld+json",
-        children: JSON.stringify({
-          "@context": "https://schema.org",
-          "@type": "Article",
-          headline: TITLE,
-          description: DESCRIPTION,
-          author: { "@type": "Organization", name: "Easy Contracts" },
-          publisher: { "@type": "Organization", name: "Easy Contracts" },
-          mainEntityOfPage: CANONICAL,
-        }),
+        children: JSON.stringify(
+          articleSchema({ headline: TITLE, description: DESCRIPTION, canonical: CANONICAL }),
+        ),
       },
       {
         type: "application/ld+json",

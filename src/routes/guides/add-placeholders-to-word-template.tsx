@@ -3,6 +3,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { Button } from "@/components/ui/button";
 import { MarketingHeader, MarketingFooter, Bullet, Faq } from "@/components/marketing";
 import { RelatedArticles } from "@/lib/cluster";
+import { articleSchema } from "@/lib/seo";
 
 const CANONICAL = "https://easycontracts.site/guides/add-placeholders-to-word-template";
 const TITLE = "How to Add Placeholders to a Word Template";
@@ -41,15 +42,9 @@ export const Route = createFileRoute("/guides/add-placeholders-to-word-template"
     scripts: [
       {
         type: "application/ld+json",
-        children: JSON.stringify({
-          "@context": "https://schema.org",
-          "@type": "Article",
-          headline: TITLE,
-          description: DESCRIPTION,
-          author: { "@type": "Organization", name: "Easy Contracts" },
-          publisher: { "@type": "Organization", name: "Easy Contracts" },
-          mainEntityOfPage: CANONICAL,
-        }),
+        children: JSON.stringify(
+          articleSchema({ headline: TITLE, description: DESCRIPTION, canonical: CANONICAL }),
+        ),
       },
       {
         type: "application/ld+json",
@@ -76,7 +71,7 @@ function Page() {
       <section className="mx-auto max-w-3xl px-6 py-16">
         <p className="text-sm font-medium text-primary">Guide · 5 min read</p>
         <h1 className="mt-3 text-4xl font-bold tracking-tight sm:text-5xl">
-          How to add placeholders to a Word template
+          Adding placeholders to a Word template
         </h1>
         <p className="mt-4 text-lg text-muted-foreground">
           A placeholder is a marker you drop into a document wherever something changes from one copy
