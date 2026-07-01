@@ -114,6 +114,20 @@ function Page() {
               </div>
             ))}
           </dl>
+          <p className="mt-6 text-muted-foreground">
+            Disclosure is the one clause you can't afford to get wrong: in the U.S., the FTC requires
+            creators to clearly label paid partnerships. The{" "}
+            <a
+              href="https://www.ftc.gov/business-guidance/resources/disclosures-101-social-media-influencers"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="font-medium text-primary underline-offset-4 hover:underline"
+            >
+              FTC's Disclosures 101 for social media influencers
+            </a>{" "}
+            spells out the current rules — bake that language into your template so every contract
+            stays compliant.
+          </p>
         </section>
 
         <section>
@@ -150,6 +164,16 @@ function Page() {
               how to add placeholders to a Word template
             </Link>
             .
+          </p>
+          <p className="mt-4 text-muted-foreground">
+            Managing many creators at once? See how{" "}
+            <Link
+              to="/use-cases/influencer-contracts-for-agencies"
+              className="font-medium text-primary underline-offset-4 hover:underline"
+            >
+              agencies generate influencer contracts in bulk
+            </Link>{" "}
+            for an entire roster in a single batch.
           </p>
         </section>
 

@@ -170,6 +170,23 @@ function GuidePage() {
             in batches and need clean, individually named files, a dedicated generator saves the
             cleanup.
           </p>
+          <p className="mt-6 text-muted-foreground">
+            Deciding which generator to use? See how{" "}
+            <Link
+              to="/compare/easy-contracts-vs-docupilot-documint-portant"
+              className="font-medium text-primary underline-offset-4 hover:underline"
+            >
+              Easy Contracts compares to Docupilot, Documint &amp; Portant
+            </Link>
+            . And if you're running campaigns across many creators at once, here's how{" "}
+            <Link
+              to="/use-cases/influencer-contracts-for-agencies"
+              className="font-medium text-primary underline-offset-4 hover:underline"
+            >
+              agencies generate influencer contracts in bulk
+            </Link>
+            .
+          </p>
         </section>
 
         <section>
