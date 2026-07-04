@@ -8,6 +8,8 @@ import {
   Layers,
   BookOpen,
   Scale,
+  ShieldCheck,
+  Briefcase,
   ArrowRight,
   type LucideIcon,
 } from "lucide-react";
@@ -37,6 +39,20 @@ export const ARTICLES: ClusterArticle[] = [
     title: "Influencer contracts for agencies",
     blurb: "Generate a personalized agreement for every creator on your roster in one batch.",
     icon: Building2,
+  },
+  {
+    to: "/nda-generator",
+    label: "Use case",
+    title: "Bulk NDA generator",
+    blurb: "Generate a personalized non-disclosure agreement for every signer from one template.",
+    icon: ShieldCheck,
+  },
+  {
+    to: "/freelance-contract-templates",
+    label: "Templates",
+    title: "Freelance contract templates",
+    blurb: "One template, every client filled in — generate an agreement for each in a batch.",
+    icon: Briefcase,
   },
   {
     to: "/guides/generate-contracts-from-excel",
