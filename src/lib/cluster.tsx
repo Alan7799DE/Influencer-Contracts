@@ -10,6 +10,7 @@ import {
   Scale,
   ShieldCheck,
   Briefcase,
+  Video,
   ArrowRight,
   type LucideIcon,
 } from "lucide-react";
@@ -53,6 +54,13 @@ export const ARTICLES: ClusterArticle[] = [
     title: "Freelance contract templates",
     blurb: "One template, every client filled in — generate an agreement for each in a batch.",
     icon: Briefcase,
+  },
+  {
+    to: "/ugc-creator-agreement-template",
+    label: "Templates",
+    title: "UGC creator agreement template",
+    blurb: "Lock down usage rights and whitelisting, then generate one agreement per creator.",
+    icon: Video,
   },
   {
     to: "/guides/generate-contracts-from-excel",
