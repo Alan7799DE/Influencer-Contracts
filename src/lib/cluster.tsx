@@ -63,6 +63,20 @@ export const ARTICLES: ClusterArticle[] = [
     icon: Video,
   },
   {
+    to: "/platforms/tiktok-creator-contracts",
+    label: "Templates",
+    title: "TikTok creator contract template",
+    blurb: "Cover duets, stitches, and repurposing rights, then generate one contract per creator.",
+    icon: Video,
+  },
+  {
+    to: "/platforms/instagram-creator-contracts",
+    label: "Templates",
+    title: "Instagram creator contract template",
+    blurb: "Handle Reels, feed exclusivity, and usage rights across your whole creator roster.",
+    icon: Video,
+  },
+  {
     to: "/guides/generate-contracts-from-excel",
     label: "Guide",
     title: "Generate contracts from Excel",
