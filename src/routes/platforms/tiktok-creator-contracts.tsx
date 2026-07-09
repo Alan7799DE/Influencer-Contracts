@@ -150,7 +150,7 @@ function TikTokCreatorContractsPage() {
         <section>
           <h2 className="text-2xl font-semibold tracking-tight">Set up your template with placeholders</h2>
           <p className="mt-4 text-muted-foreground">
-            Keep your legal boilerplate fixed and turn the creator-specific details into {{variables}} you fill from a spreadsheet.
+            Keep your legal boilerplate fixed and turn the creator-specific details into {`{{variables}}`} you fill from a spreadsheet.
           </p>
           <div className="mt-6 rounded-lg border bg-muted/50 p-5 font-mono text-sm">
             <p>This TikTok Creator Agreement is entered into between</p>

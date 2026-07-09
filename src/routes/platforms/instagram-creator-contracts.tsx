@@ -156,7 +156,7 @@ function InstagramCreatorContractsPage() {
         <section>
           <h2 className="text-2xl font-semibold tracking-tight">Use a template with placeholders</h2>
           <p className="mt-4 text-muted-foreground">
-            Keep your standard terms fixed and turn creator-specific details into {{variables}} you'll fill from a spreadsheet.
+            Keep your standard terms fixed and turn creator-specific details into {`{{variables}}`} you'll fill from a spreadsheet.
           </p>
           <div className="mt-6 rounded-lg border bg-muted/50 p-5 font-mono text-sm">
             <p>This Instagram Creator Agreement is entered into between</p>
