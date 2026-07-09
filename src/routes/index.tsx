@@ -385,7 +385,15 @@ function HomePage() {
             </nav>
           </div>
           <div className="mt-10 border-t border-border pt-6 text-sm text-muted-foreground">
-            © {new Date().getFullYear()} Easy Contracts
+            © {new Date().getFullYear()} Easy Contracts · Diseñado y desarrollado por{" "}
+            <a
+              href="https://niveals.com/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="transition-colors hover:text-foreground"
+            >
+              Niveals
+            </a>
           </div>
         </div>
       </footer>

@@ -23,7 +23,17 @@ export function MarketingFooter() {
   return (
     <footer className="border-t">
       <div className="mx-auto flex max-w-5xl flex-wrap items-center justify-between gap-3 px-6 py-6 text-sm text-muted-foreground">
-        <p>© {new Date().getFullYear()} Easy Contracts</p>
+        <p>
+          © {new Date().getFullYear()} Easy Contracts · Diseñado y desarrollado por{" "}
+          <a
+            href="https://niveals.com/"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="hover:text-foreground"
+          >
+            Niveals
+          </a>
+        </p>
         <Link to="/auth" className="hover:text-foreground">
           Sign in
         </Link>
