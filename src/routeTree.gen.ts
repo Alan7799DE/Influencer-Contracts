@@ -9,25 +9,54 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as UgcCreatorAgreementTemplateRouteImport } from './routes/ugc-creator-agreement-template'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
+import { Route as NdaGeneratorRouteImport } from './routes/nda-generator'
 import { Route as InfluencerContractTemplatesRouteImport } from './routes/influencer-contract-templates'
+import { Route as FreelanceContractTemplatesRouteImport } from './routes/freelance-contract-templates'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as UseCasesInfluencerContractsForAgenciesRouteImport } from './routes/use-cases/influencer-contracts-for-agencies'
+import { Route as PlatformsTiktokCreatorContractsRouteImport } from './routes/platforms/tiktok-creator-contracts'
+import { Route as PlatformsInstagramCreatorContractsRouteImport } from './routes/platforms/instagram-creator-contracts'
+import { Route as GuidesWhatToIncludeInAnInfluencerContractRouteImport } from './routes/guides/what-to-include-in-an-influencer-contract'
+import { Route as GuidesPersonalizeContractsAutomaticallyRouteImport } from './routes/guides/personalize-contracts-automatically'
+import { Route as GuidesGenerateDocumentsInBulkRouteImport } from './routes/guides/generate-documents-in-bulk'
+import { Route as GuidesGenerateContractsFromExcelRouteImport } from './routes/guides/generate-contracts-from-excel'
+import { Route as GuidesAddPlaceholdersToWordTemplateRouteImport } from './routes/guides/add-placeholders-to-word-template'
+import { Route as CompareEasyContractsVsDocupilotDocumintPortantRouteImport } from './routes/compare/easy-contracts-vs-docupilot-documint-portant'
 import { Route as AuthenticatedGenerationsRouteImport } from './routes/_authenticated/generations'
 import { Route as AuthenticatedTemplatesIndexRouteImport } from './routes/_authenticated/templates.index'
 import { Route as AuthenticatedTemplatesNewRouteImport } from './routes/_authenticated/templates.new'
 import { Route as AuthenticatedTemplatesIdEditRouteImport } from './routes/_authenticated/templates.$id.edit'
 
+const UgcCreatorAgreementTemplateRoute =
+  UgcCreatorAgreementTemplateRouteImport.update({
+    id: '/ugc-creator-agreement-template',
+    path: '/ugc-creator-agreement-template',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
   id: '/sitemap.xml',
   path: '/sitemap.xml',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const NdaGeneratorRoute = NdaGeneratorRouteImport.update({
+  id: '/nda-generator',
+  path: '/nda-generator',
   getParentRoute: () => rootRouteImport,
 } as any)
 const InfluencerContractTemplatesRoute =
   InfluencerContractTemplatesRouteImport.update({
     id: '/influencer-contract-templates',
     path: '/influencer-contract-templates',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const FreelanceContractTemplatesRoute =
+  FreelanceContractTemplatesRouteImport.update({
+    id: '/freelance-contract-templates',
+    path: '/freelance-contract-templates',
     getParentRoute: () => rootRouteImport,
   } as any)
 const AuthRoute = AuthRouteImport.update({
@@ -44,6 +73,60 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const UseCasesInfluencerContractsForAgenciesRoute =
+  UseCasesInfluencerContractsForAgenciesRouteImport.update({
+    id: '/use-cases/influencer-contracts-for-agencies',
+    path: '/use-cases/influencer-contracts-for-agencies',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const PlatformsTiktokCreatorContractsRoute =
+  PlatformsTiktokCreatorContractsRouteImport.update({
+    id: '/platforms/tiktok-creator-contracts',
+    path: '/platforms/tiktok-creator-contracts',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const PlatformsInstagramCreatorContractsRoute =
+  PlatformsInstagramCreatorContractsRouteImport.update({
+    id: '/platforms/instagram-creator-contracts',
+    path: '/platforms/instagram-creator-contracts',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const GuidesWhatToIncludeInAnInfluencerContractRoute =
+  GuidesWhatToIncludeInAnInfluencerContractRouteImport.update({
+    id: '/guides/what-to-include-in-an-influencer-contract',
+    path: '/guides/what-to-include-in-an-influencer-contract',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const GuidesPersonalizeContractsAutomaticallyRoute =
+  GuidesPersonalizeContractsAutomaticallyRouteImport.update({
+    id: '/guides/personalize-contracts-automatically',
+    path: '/guides/personalize-contracts-automatically',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const GuidesGenerateDocumentsInBulkRoute =
+  GuidesGenerateDocumentsInBulkRouteImport.update({
+    id: '/guides/generate-documents-in-bulk',
+    path: '/guides/generate-documents-in-bulk',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const GuidesGenerateContractsFromExcelRoute =
+  GuidesGenerateContractsFromExcelRouteImport.update({
+    id: '/guides/generate-contracts-from-excel',
+    path: '/guides/generate-contracts-from-excel',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const GuidesAddPlaceholdersToWordTemplateRoute =
+  GuidesAddPlaceholdersToWordTemplateRouteImport.update({
+    id: '/guides/add-placeholders-to-word-template',
+    path: '/guides/add-placeholders-to-word-template',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const CompareEasyContractsVsDocupilotDocumintPortantRoute =
+  CompareEasyContractsVsDocupilotDocumintPortantRouteImport.update({
+    id: '/compare/easy-contracts-vs-docupilot-documint-portant',
+    path: '/compare/easy-contracts-vs-docupilot-documint-portant',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const AuthenticatedGenerationsRoute =
   AuthenticatedGenerationsRouteImport.update({
     id: '/generations',
@@ -72,9 +155,21 @@ const AuthenticatedTemplatesIdEditRoute =
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
+  '/freelance-contract-templates': typeof FreelanceContractTemplatesRoute
   '/influencer-contract-templates': typeof InfluencerContractTemplatesRoute
+  '/nda-generator': typeof NdaGeneratorRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/ugc-creator-agreement-template': typeof UgcCreatorAgreementTemplateRoute
   '/generations': typeof AuthenticatedGenerationsRoute
+  '/compare/easy-contracts-vs-docupilot-documint-portant': typeof CompareEasyContractsVsDocupilotDocumintPortantRoute
+  '/guides/add-placeholders-to-word-template': typeof GuidesAddPlaceholdersToWordTemplateRoute
+  '/guides/generate-contracts-from-excel': typeof GuidesGenerateContractsFromExcelRoute
+  '/guides/generate-documents-in-bulk': typeof GuidesGenerateDocumentsInBulkRoute
+  '/guides/personalize-contracts-automatically': typeof GuidesPersonalizeContractsAutomaticallyRoute
+  '/guides/what-to-include-in-an-influencer-contract': typeof GuidesWhatToIncludeInAnInfluencerContractRoute
+  '/platforms/instagram-creator-contracts': typeof PlatformsInstagramCreatorContractsRoute
+  '/platforms/tiktok-creator-contracts': typeof PlatformsTiktokCreatorContractsRoute
+  '/use-cases/influencer-contracts-for-agencies': typeof UseCasesInfluencerContractsForAgenciesRoute
   '/templates/new': typeof AuthenticatedTemplatesNewRoute
   '/templates/': typeof AuthenticatedTemplatesIndexRoute
   '/templates/$id/edit': typeof AuthenticatedTemplatesIdEditRoute
@@ -82,9 +177,21 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
+  '/freelance-contract-templates': typeof FreelanceContractTemplatesRoute
   '/influencer-contract-templates': typeof InfluencerContractTemplatesRoute
+  '/nda-generator': typeof NdaGeneratorRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/ugc-creator-agreement-template': typeof UgcCreatorAgreementTemplateRoute
   '/generations': typeof AuthenticatedGenerationsRoute
+  '/compare/easy-contracts-vs-docupilot-documint-portant': typeof CompareEasyContractsVsDocupilotDocumintPortantRoute
+  '/guides/add-placeholders-to-word-template': typeof GuidesAddPlaceholdersToWordTemplateRoute
+  '/guides/generate-contracts-from-excel': typeof GuidesGenerateContractsFromExcelRoute
+  '/guides/generate-documents-in-bulk': typeof GuidesGenerateDocumentsInBulkRoute
+  '/guides/personalize-contracts-automatically': typeof GuidesPersonalizeContractsAutomaticallyRoute
+  '/guides/what-to-include-in-an-influencer-contract': typeof GuidesWhatToIncludeInAnInfluencerContractRoute
+  '/platforms/instagram-creator-contracts': typeof PlatformsInstagramCreatorContractsRoute
+  '/platforms/tiktok-creator-contracts': typeof PlatformsTiktokCreatorContractsRoute
+  '/use-cases/influencer-contracts-for-agencies': typeof UseCasesInfluencerContractsForAgenciesRoute
   '/templates/new': typeof AuthenticatedTemplatesNewRoute
   '/templates': typeof AuthenticatedTemplatesIndexRoute
   '/templates/$id/edit': typeof AuthenticatedTemplatesIdEditRoute
@@ -94,9 +201,21 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/auth': typeof AuthRoute
+  '/freelance-contract-templates': typeof FreelanceContractTemplatesRoute
   '/influencer-contract-templates': typeof InfluencerContractTemplatesRoute
+  '/nda-generator': typeof NdaGeneratorRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/ugc-creator-agreement-template': typeof UgcCreatorAgreementTemplateRoute
   '/_authenticated/generations': typeof AuthenticatedGenerationsRoute
+  '/compare/easy-contracts-vs-docupilot-documint-portant': typeof CompareEasyContractsVsDocupilotDocumintPortantRoute
+  '/guides/add-placeholders-to-word-template': typeof GuidesAddPlaceholdersToWordTemplateRoute
+  '/guides/generate-contracts-from-excel': typeof GuidesGenerateContractsFromExcelRoute
+  '/guides/generate-documents-in-bulk': typeof GuidesGenerateDocumentsInBulkRoute
+  '/guides/personalize-contracts-automatically': typeof GuidesPersonalizeContractsAutomaticallyRoute
+  '/guides/what-to-include-in-an-influencer-contract': typeof GuidesWhatToIncludeInAnInfluencerContractRoute
+  '/platforms/instagram-creator-contracts': typeof PlatformsInstagramCreatorContractsRoute
+  '/platforms/tiktok-creator-contracts': typeof PlatformsTiktokCreatorContractsRoute
+  '/use-cases/influencer-contracts-for-agencies': typeof UseCasesInfluencerContractsForAgenciesRoute
   '/_authenticated/templates/new': typeof AuthenticatedTemplatesNewRoute
   '/_authenticated/templates/': typeof AuthenticatedTemplatesIndexRoute
   '/_authenticated/templates/$id/edit': typeof AuthenticatedTemplatesIdEditRoute
@@ -106,9 +225,21 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/auth'
+    | '/freelance-contract-templates'
     | '/influencer-contract-templates'
+    | '/nda-generator'
     | '/sitemap.xml'
+    | '/ugc-creator-agreement-template'
     | '/generations'
+    | '/compare/easy-contracts-vs-docupilot-documint-portant'
+    | '/guides/add-placeholders-to-word-template'
+    | '/guides/generate-contracts-from-excel'
+    | '/guides/generate-documents-in-bulk'
+    | '/guides/personalize-contracts-automatically'
+    | '/guides/what-to-include-in-an-influencer-contract'
+    | '/platforms/instagram-creator-contracts'
+    | '/platforms/tiktok-creator-contracts'
+    | '/use-cases/influencer-contracts-for-agencies'
     | '/templates/new'
     | '/templates/'
     | '/templates/$id/edit'
@@ -116,9 +247,21 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/auth'
+    | '/freelance-contract-templates'
     | '/influencer-contract-templates'
+    | '/nda-generator'
     | '/sitemap.xml'
+    | '/ugc-creator-agreement-template'
     | '/generations'
+    | '/compare/easy-contracts-vs-docupilot-documint-portant'
+    | '/guides/add-placeholders-to-word-template'
+    | '/guides/generate-contracts-from-excel'
+    | '/guides/generate-documents-in-bulk'
+    | '/guides/personalize-contracts-automatically'
+    | '/guides/what-to-include-in-an-influencer-contract'
+    | '/platforms/instagram-creator-contracts'
+    | '/platforms/tiktok-creator-contracts'
+    | '/use-cases/influencer-contracts-for-agencies'
     | '/templates/new'
     | '/templates'
     | '/templates/$id/edit'
@@ -127,9 +270,21 @@ export interface FileRouteTypes {
     | '/'
     | '/_authenticated'
     | '/auth'
+    | '/freelance-contract-templates'
     | '/influencer-contract-templates'
+    | '/nda-generator'
     | '/sitemap.xml'
+    | '/ugc-creator-agreement-template'
     | '/_authenticated/generations'
+    | '/compare/easy-contracts-vs-docupilot-documint-portant'
+    | '/guides/add-placeholders-to-word-template'
+    | '/guides/generate-contracts-from-excel'
+    | '/guides/generate-documents-in-bulk'
+    | '/guides/personalize-contracts-automatically'
+    | '/guides/what-to-include-in-an-influencer-contract'
+    | '/platforms/instagram-creator-contracts'
+    | '/platforms/tiktok-creator-contracts'
+    | '/use-cases/influencer-contracts-for-agencies'
     | '/_authenticated/templates/new'
     | '/_authenticated/templates/'
     | '/_authenticated/templates/$id/edit'
@@ -139,12 +294,31 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   AuthRoute: typeof AuthRoute
+  FreelanceContractTemplatesRoute: typeof FreelanceContractTemplatesRoute
   InfluencerContractTemplatesRoute: typeof InfluencerContractTemplatesRoute
+  NdaGeneratorRoute: typeof NdaGeneratorRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
+  UgcCreatorAgreementTemplateRoute: typeof UgcCreatorAgreementTemplateRoute
+  CompareEasyContractsVsDocupilotDocumintPortantRoute: typeof CompareEasyContractsVsDocupilotDocumintPortantRoute
+  GuidesAddPlaceholdersToWordTemplateRoute: typeof GuidesAddPlaceholdersToWordTemplateRoute
+  GuidesGenerateContractsFromExcelRoute: typeof GuidesGenerateContractsFromExcelRoute
+  GuidesGenerateDocumentsInBulkRoute: typeof GuidesGenerateDocumentsInBulkRoute
+  GuidesPersonalizeContractsAutomaticallyRoute: typeof GuidesPersonalizeContractsAutomaticallyRoute
+  GuidesWhatToIncludeInAnInfluencerContractRoute: typeof GuidesWhatToIncludeInAnInfluencerContractRoute
+  PlatformsInstagramCreatorContractsRoute: typeof PlatformsInstagramCreatorContractsRoute
+  PlatformsTiktokCreatorContractsRoute: typeof PlatformsTiktokCreatorContractsRoute
+  UseCasesInfluencerContractsForAgenciesRoute: typeof UseCasesInfluencerContractsForAgenciesRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/ugc-creator-agreement-template': {
+      id: '/ugc-creator-agreement-template'
+      path: '/ugc-creator-agreement-template'
+      fullPath: '/ugc-creator-agreement-template'
+      preLoaderRoute: typeof UgcCreatorAgreementTemplateRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/sitemap.xml': {
       id: '/sitemap.xml'
       path: '/sitemap.xml'
@@ -152,11 +326,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SitemapDotxmlRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/nda-generator': {
+      id: '/nda-generator'
+      path: '/nda-generator'
+      fullPath: '/nda-generator'
+      preLoaderRoute: typeof NdaGeneratorRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/influencer-contract-templates': {
       id: '/influencer-contract-templates'
       path: '/influencer-contract-templates'
       fullPath: '/influencer-contract-templates'
       preLoaderRoute: typeof InfluencerContractTemplatesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/freelance-contract-templates': {
+      id: '/freelance-contract-templates'
+      path: '/freelance-contract-templates'
+      fullPath: '/freelance-contract-templates'
+      preLoaderRoute: typeof FreelanceContractTemplatesRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/auth': {
@@ -178,6 +366,69 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/use-cases/influencer-contracts-for-agencies': {
+      id: '/use-cases/influencer-contracts-for-agencies'
+      path: '/use-cases/influencer-contracts-for-agencies'
+      fullPath: '/use-cases/influencer-contracts-for-agencies'
+      preLoaderRoute: typeof UseCasesInfluencerContractsForAgenciesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/platforms/tiktok-creator-contracts': {
+      id: '/platforms/tiktok-creator-contracts'
+      path: '/platforms/tiktok-creator-contracts'
+      fullPath: '/platforms/tiktok-creator-contracts'
+      preLoaderRoute: typeof PlatformsTiktokCreatorContractsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/platforms/instagram-creator-contracts': {
+      id: '/platforms/instagram-creator-contracts'
+      path: '/platforms/instagram-creator-contracts'
+      fullPath: '/platforms/instagram-creator-contracts'
+      preLoaderRoute: typeof PlatformsInstagramCreatorContractsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/guides/what-to-include-in-an-influencer-contract': {
+      id: '/guides/what-to-include-in-an-influencer-contract'
+      path: '/guides/what-to-include-in-an-influencer-contract'
+      fullPath: '/guides/what-to-include-in-an-influencer-contract'
+      preLoaderRoute: typeof GuidesWhatToIncludeInAnInfluencerContractRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/guides/personalize-contracts-automatically': {
+      id: '/guides/personalize-contracts-automatically'
+      path: '/guides/personalize-contracts-automatically'
+      fullPath: '/guides/personalize-contracts-automatically'
+      preLoaderRoute: typeof GuidesPersonalizeContractsAutomaticallyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/guides/generate-documents-in-bulk': {
+      id: '/guides/generate-documents-in-bulk'
+      path: '/guides/generate-documents-in-bulk'
+      fullPath: '/guides/generate-documents-in-bulk'
+      preLoaderRoute: typeof GuidesGenerateDocumentsInBulkRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/guides/generate-contracts-from-excel': {
+      id: '/guides/generate-contracts-from-excel'
+      path: '/guides/generate-contracts-from-excel'
+      fullPath: '/guides/generate-contracts-from-excel'
+      preLoaderRoute: typeof GuidesGenerateContractsFromExcelRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/guides/add-placeholders-to-word-template': {
+      id: '/guides/add-placeholders-to-word-template'
+      path: '/guides/add-placeholders-to-word-template'
+      fullPath: '/guides/add-placeholders-to-word-template'
+      preLoaderRoute: typeof GuidesAddPlaceholdersToWordTemplateRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/compare/easy-contracts-vs-docupilot-documint-portant': {
+      id: '/compare/easy-contracts-vs-docupilot-documint-portant'
+      path: '/compare/easy-contracts-vs-docupilot-documint-portant'
+      fullPath: '/compare/easy-contracts-vs-docupilot-documint-portant'
+      preLoaderRoute: typeof CompareEasyContractsVsDocupilotDocumintPortantRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_authenticated/generations': {
@@ -232,8 +483,26 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   AuthRoute: AuthRoute,
+  FreelanceContractTemplatesRoute: FreelanceContractTemplatesRoute,
   InfluencerContractTemplatesRoute: InfluencerContractTemplatesRoute,
+  NdaGeneratorRoute: NdaGeneratorRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
+  UgcCreatorAgreementTemplateRoute: UgcCreatorAgreementTemplateRoute,
+  CompareEasyContractsVsDocupilotDocumintPortantRoute:
+    CompareEasyContractsVsDocupilotDocumintPortantRoute,
+  GuidesAddPlaceholdersToWordTemplateRoute:
+    GuidesAddPlaceholdersToWordTemplateRoute,
+  GuidesGenerateContractsFromExcelRoute: GuidesGenerateContractsFromExcelRoute,
+  GuidesGenerateDocumentsInBulkRoute: GuidesGenerateDocumentsInBulkRoute,
+  GuidesPersonalizeContractsAutomaticallyRoute:
+    GuidesPersonalizeContractsAutomaticallyRoute,
+  GuidesWhatToIncludeInAnInfluencerContractRoute:
+    GuidesWhatToIncludeInAnInfluencerContractRoute,
+  PlatformsInstagramCreatorContractsRoute:
+    PlatformsInstagramCreatorContractsRoute,
+  PlatformsTiktokCreatorContractsRoute: PlatformsTiktokCreatorContractsRoute,
+  UseCasesInfluencerContractsForAgenciesRoute:
+    UseCasesInfluencerContractsForAgenciesRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
