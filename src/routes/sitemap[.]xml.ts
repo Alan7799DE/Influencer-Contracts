@@ -11,7 +11,7 @@ interface SitemapEntry {
 }
 
 // Bump when the public, indexable content meaningfully changes.
-const LAST_MODIFIED = "2026-07-05";
+const LAST_MODIFIED = "2026-07-08";
 
 export const Route = createFileRoute("/sitemap.xml")({
   server: {
@@ -28,6 +28,8 @@ export const Route = createFileRoute("/sitemap.xml")({
           { path: "/nda-generator", changefreq: "monthly", priority: "0.8", lastmod: LAST_MODIFIED },
           { path: "/freelance-contract-templates", changefreq: "monthly", priority: "0.8", lastmod: LAST_MODIFIED },
           { path: "/ugc-creator-agreement-template", changefreq: "monthly", priority: "0.8", lastmod: LAST_MODIFIED },
+          { path: "/platforms/tiktok-creator-contracts", changefreq: "monthly", priority: "0.8", lastmod: LAST_MODIFIED },
+          { path: "/platforms/instagram-creator-contracts", changefreq: "monthly", priority: "0.8", lastmod: LAST_MODIFIED },
           { path: "/guides/generate-contracts-from-excel", changefreq: "monthly", priority: "0.7", lastmod: LAST_MODIFIED },
           { path: "/guides/what-to-include-in-an-influencer-contract", changefreq: "monthly", priority: "0.7", lastmod: LAST_MODIFIED },
           { path: "/guides/add-placeholders-to-word-template", changefreq: "monthly", priority: "0.7", lastmod: LAST_MODIFIED },
