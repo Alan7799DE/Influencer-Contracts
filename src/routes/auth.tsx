@@ -31,14 +31,19 @@ export const Route = createFileRoute("/auth")({
   component: AuthPage,
 });
 
-const credentialsSchema = z.object({
+const loginSchema = z.object({
   email: z.string().trim().email("Invalid email").max(255),
   password: z.string().min(6, "Minimum 6 characters").max(72),
-  confirmPassword: z.string().min(6, "Minimum 6 characters").max(72),
-}).refine((data) => data.password === data.confirmPassword, {
-  message: "Passwords do not match",
-  path: ["confirmPassword"],
 });
+
+const signupSchema = loginSchema
+  .extend({
+    confirmPassword: z.string().min(6, "Minimum 6 characters").max(72),
+  })
+  .refine((data) => data.password === data.confirmPassword, {
+    message: "Passwords do not match",
+    path: ["confirmPassword"],
+  });
 
 function AuthPage() {
   const navigate = useNavigate();
@@ -50,7 +55,10 @@ function AuthPage() {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    const parsed = credentialsSchema.safeParse({ email, password, confirmPassword });
+    const parsed =
+      mode === "signup"
+        ? signupSchema.safeParse({ email, password, confirmPassword })
+        : loginSchema.safeParse({ email, password });
     if (!parsed.success) {
       toast.error(parsed.error.issues[0]?.message ?? "Invalid data");
       return;
